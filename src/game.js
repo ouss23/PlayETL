@@ -1,3 +1,10 @@
+//import { DataFrame } from "./model/data_frame.js";
+import { createDiamond } from "./view/shapes/diamond.js";
+import { createStar } from "./view/shapes/star.js";
+import { createGridLayer } from "./view/background.js"
+import { Row } from "./model/row.js";
+import { RowRenderer } from "./view/row_renderer.js";
+
 const stage = new Konva.Stage({
     container: 'container',
     width: window.innerWidth,
@@ -50,45 +57,32 @@ const text = new Konva.Text({
     height: 100,
 });
 
-const diamond = createDiamond({x: 50, y: 50, radius: 20, fill: '#e23b73ff', stroke: '#9e4160ff'});
-const star = createStar({x: 150, y: 150, radius: 20, fill: '#3be2c6ff', stroke: '#4ca596ff'});
-
-const text2 = new Konva.Text({
-    x: 50-10,
-    y: 50-9,
-    text: '5',
-    fontSize: 18,
-    //fontFamily: 'Calibri',
-    fill: 'white',
-    align: 'center',
-    width: 20,
-    height: 100,
-});
-
-const text3 = new Konva.Text({
-    x: 150-10,
-    y: 150-9,
-    text: 'A',
-    fontSize: 18,
-    //fontFamily: 'Calibri',
-    fill: 'white',
-    align: 'center',
-    width: 20,
-    height: 100,
-});
-
 //group.add(rect2);
 group.add(rect);
 group.add(text);
 
 //layer.add(text);
 
+const star = new RowRenderer(
+    new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
+    50,
+    50,
+).shape;
+
+const diamond = new RowRenderer(
+    new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
+    250,
+    150,
+).shape;
+
 //layer.add(createGridLayer(200, 200))
 layer.add(group);
 layer.add(diamond);
 layer.add(star);
-layer.add(text2);
-layer.add(text3);
+
+const row = new Row(["star", "white", "S"], RowRenderer.shapeSchema);
+console.log(row);
+
 /*const bgLayer = new Konva.Layer();
 bgLayer.add(new Konva.Line({
     points: [0, 200, 1000, 200],

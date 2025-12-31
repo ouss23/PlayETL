@@ -1,4 +1,4 @@
-function createStar({
+export function createStar({
     x = 0,
     y = 0,
     radius = 10,

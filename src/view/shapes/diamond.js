@@ -1,4 +1,4 @@
-function createDiamond({
+export function createDiamond({
     x = 0,
     y = 0,
     radius = 10,

@@ -1,4 +1,4 @@
-function createGridLayer({
+export function createGridLayer({
   width,
   height,
   cellSize = 10,

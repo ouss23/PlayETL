@@ -1,4 +1,6 @@
-class Schema {
+import { Column } from "./column.js";
+
+export class Schema {
   constructor(columns) {
     this.columns = columns;
     /*this.columnMap = new Map(
