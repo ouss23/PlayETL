@@ -4,6 +4,8 @@ import { createStar } from "./view/shapes/star.js";
 import { createGridLayer } from "./view/background.js"
 import { Row } from "./model/row.js";
 import { RowRenderer } from "./view/row_renderer.js";
+import { DataFrameRenderer } from "./view/data_frame_renderer.js";
+import { DataFrame } from "./model/data_frame.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -63,7 +65,7 @@ group.add(text);
 
 //layer.add(text);
 
-const star = new RowRenderer(
+/*const star = new RowRenderer(
     new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
     50,
     50,
@@ -73,15 +75,36 @@ const diamond = new RowRenderer(
     new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
     250,
     150,
-).shape;
+).shape;*/
 
 //layer.add(createGridLayer(200, 200))
 layer.add(group);
-layer.add(diamond);
-layer.add(star);
+/*layer.add(diamond);
+layer.add(star);*/
 
-const row = new Row(["star", "white", "S"], RowRenderer.shapeSchema);
-console.log(row);
+//const row = new Row(["star", "white", "S"], RowRenderer.shapeSchema);
+const dataframe = new DataFrame(
+    "sample_df",
+    RowRenderer.shapeSchema,
+    [
+        new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
+        new Row(["star", "green", "S"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
+        new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
+    ]
+);
+layer.add(
+    new DataFrameRenderer({
+        dataframe: dataframe,
+        x: 100,
+        y: 100,
+        elements_offset: 50,
+        max_height: 3,
+        padding: 5,
+    }).shape
+);
+console.log(dataframe);
 
 /*const bgLayer = new Konva.Layer();
 bgLayer.add(new Konva.Line({

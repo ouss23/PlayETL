@@ -26,7 +26,7 @@ export class RowRenderer {
         this.shape = new Konva.Group({
             x: x,
             y: y,
-            draggable: true,
+            draggable: false,
         });
         switch(row.values[0]) {
             case "star":
@@ -60,7 +60,7 @@ export class RowRenderer {
             fill: 'white',
             align: 'center',
             width: 20,
-            height: 100,
+            height: 30,
         }));
     }
 }
