@@ -6,6 +6,8 @@ import { Row } from "./model/row.js";
 import { RowRenderer } from "./view/row_renderer.js";
 import { DataFrameRenderer } from "./view/data_frame_renderer.js";
 import { DataFrame } from "./model/data_frame.js";
+import { DataStream } from "./model/data_stream.js";
+import { DataStreamRenderer } from "./view/data_stream_renderer.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -52,7 +54,7 @@ const text = new Konva.Text({
     y: 25,
     text: '⚠️ Dataframe ⚠️',
     fontSize: 20,
-    //fontFamily: 'Calibri',
+    fontFamily: 'Avenir',
     fill: '#555',
     align: 'center',
     width: 150,
@@ -97,14 +99,21 @@ const dataframe = new DataFrame(
 layer.add(
     new DataFrameRenderer({
         dataframe: dataframe,
-        x: 100,
-        y: 100,
+        x: 500,
+        y: 300,
         elements_offset: 50,
         max_height: 3,
         padding: 5,
     }).shape
 );
-console.log(dataframe);
+//console.log(dataframe);
+
+/*const star = new RowRenderer(
+    new Row(["star", "purple", "X"], RowRenderer.shapeSchema),
+    50,
+    50,
+).shape;
+layer.add(star);*/
 
 /*const bgLayer = new Konva.Layer();
 bgLayer.add(new Konva.Line({
@@ -121,3 +130,63 @@ l.draw();
 layer.draw();
 
 //console.log("main")
+
+const stream = new DataStream(
+    null,
+    null,
+    5/2,
+);
+
+const streamRenderer = new DataStreamRenderer({
+    data_stream: stream,
+    start_x: 100,
+    start_y: 100,
+    end_x: 500,
+    end_y: 300,
+});
+
+let animationTime = 0;
+let lastRowReadTime = 0;
+let rowReadDelay = 1/2;
+const lerp = (x, y, a) => x * (1 - a) + y * a;
+
+const anim = new Konva.Animation(
+    function(frame) {
+        const time = frame.time;
+        const timeDiff = frame.timeDiff;
+        //const frameRate = frame.frameRate;
+
+        /*const t = Math.min(time / 5000, 1);
+        star.x(lerp(100, 500, t));
+        star.y(lerp(100, 300, t));*/
+
+        animationTime += timeDiff / 1000;
+
+        if(animationTime > lastRowReadTime + rowReadDelay) {
+            if(dataframe.rows.length > 0) {
+                const row = dataframe.rows.shift();
+                stream.push(row, lastRowReadTime + rowReadDelay);
+                const rowRenderer = new RowRenderer(row, 100, 100);
+                layer.add(rowRenderer.shape);
+                streamRenderer.addRowRenderer(rowRenderer);
+
+                lastRowReadTime += rowReadDelay;
+            }
+        }
+
+        streamRenderer.updateRows(animationTime);
+    },
+    layer
+);
+
+anim.start();
+
+document.addEventListener("keydown", (event) => {
+    if (event.shiftKey) {
+        console.log(event.key);
+        if(anim.isRunning())
+            anim.stop();
+        else
+            anim.start();
+    }
+});
