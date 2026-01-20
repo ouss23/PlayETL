@@ -156,10 +156,6 @@ const anim = new Konva.Animation(
         const timeDiff = frame.timeDiff;
         //const frameRate = frame.frameRate;
 
-        /*const t = Math.min(time / 5000, 1);
-        star.x(lerp(100, 500, t));
-        star.y(lerp(100, 300, t));*/
-
         animationTime += timeDiff / 1000;
 
         if(animationTime > lastRowReadTime + rowReadDelay) {
