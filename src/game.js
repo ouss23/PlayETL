@@ -8,6 +8,8 @@ import { DataFrameRenderer } from "./view/data_frame_renderer.js";
 import { DataFrame } from "./model/data_frame.js";
 import { DataStream } from "./model/data_stream.js";
 import { DataStreamRenderer } from "./view/data_stream_renderer.js";
+import { StreamSimulator } from "./stream_simulator.js";
+import { DataReader } from "./model/data_reader.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -96,15 +98,17 @@ const dataframe = new DataFrame(
         new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
     ]
 );
+const dataframeRenderer = new DataFrameRenderer({
+    dataframe: dataframe,
+    x: 500,
+    y: 300,
+    elements_offset: 50,
+    max_height: 3,
+    padding: 5,
+});
+
 layer.add(
-    new DataFrameRenderer({
-        dataframe: dataframe,
-        x: 500,
-        y: 300,
-        elements_offset: 50,
-        max_height: 3,
-        padding: 5,
-    }).shape
+    dataframeRenderer.shape
 );
 //console.log(dataframe);
 
@@ -145,12 +149,29 @@ const streamRenderer = new DataStreamRenderer({
     end_y: 300,
 });
 
+const dataReader = new DataReader(
+    dataframe,
+    stream,
+    1/2,
+);
+
+stream.downstream = dataReader;
+
 let animationTime = 0;
 let lastRowReadTime = 0;
 let rowReadDelay = 1/2;
 const lerp = (x, y, a) => x * (1 - a) + y * a;
 
-const anim = new Konva.Animation(
+const simulator = new StreamSimulator({
+    data_frame_renderers: [dataframeRenderer],
+    data_stream_renderers: [streamRenderer],
+    dataReaders: [dataReader],
+    layer: layer,
+});
+
+const anim = simulator.animation;
+
+/*const anim = new Konva.Animation(
     function(frame) {
         const time = frame.time;
         const timeDiff = frame.timeDiff;
@@ -173,7 +194,7 @@ const anim = new Konva.Animation(
         streamRenderer.updateRows(animationTime);
     },
     layer
-);
+);*/
 
 anim.start();
 

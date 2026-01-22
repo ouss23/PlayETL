@@ -25,6 +25,14 @@ export class DataStreamRenderer {
     }
 
     updateRows(current_time) {
+        if(this.data_stream.rows.length != this.rows_renderers.length) {
+            throw new Error("data_stream.rows.length = " +
+                this.data_stream.rows.length +
+                ", rows_renderers.length = " +
+                this.rows_renderers.length
+            );
+            //return;
+        }
         for(let i = 0; i < this.data_stream.rows.length; i++) {
             if(this.data_stream.rows[i].row != this.rows_renderers[i].row)
                 throw new Error("Stream Row and Renderer Row not matching " +

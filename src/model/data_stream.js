@@ -3,7 +3,7 @@ import { Row } from "./row.js";
 
 export class DataStream {
     constructor(downstream, upstream, transfer_delay) {
-        //this.name = name;
+        // can either be a data reader or another data stream
         this.downstream = downstream;
         this.upstream = upstream;
         this.transfer_delay = transfer_delay;
@@ -29,5 +29,9 @@ export class DataStream {
         }
         
         return ret;
+    }
+
+    acceptsRows() {
+        return true;
     }
 }
