@@ -141,11 +141,27 @@ const stream = new DataStream(
     5/2,
 );
 
+const stream2 = new DataStream(
+    stream,
+    null,
+    5/2,
+);
+
+stream.upstream = stream2;
+
 const streamRenderer = new DataStreamRenderer({
     data_stream: stream,
     start_x: 100,
     start_y: 100,
     end_x: 500,
+    end_y: 300,
+});
+
+const stream2Renderer = new DataStreamRenderer({
+    data_stream: stream2,
+    start_x: 500,
+    start_y: 300,
+    end_x: 1000,
     end_y: 300,
 });
 
@@ -164,7 +180,7 @@ const lerp = (x, y, a) => x * (1 - a) + y * a;
 
 const simulator = new StreamSimulator({
     data_frame_renderers: [dataframeRenderer],
-    data_stream_renderers: [streamRenderer],
+    data_stream_renderers: [streamRenderer, stream2Renderer],
     dataReaders: [dataReader],
     layer: layer,
 });

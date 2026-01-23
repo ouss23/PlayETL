@@ -24,6 +24,11 @@ export class DataStreamRenderer {
         this.rows_renderers.push(row_renderer);
     }
 
+    removeRowRenderer(row) {
+        this.rows_renderers = this.rows_renderers
+            .filter(rr => rr.row != row);
+    }
+
     updateRows(current_time) {
         if(this.data_stream.rows.length != this.rows_renderers.length) {
             throw new Error("data_stream.rows.length = " +
@@ -31,7 +36,6 @@ export class DataStreamRenderer {
                 ", rows_renderers.length = " +
                 this.rows_renderers.length
             );
-            //return;
         }
         for(let i = 0; i < this.data_stream.rows.length; i++) {
             if(this.data_stream.rows[i].row != this.rows_renderers[i].row)

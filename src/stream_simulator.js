@@ -11,7 +11,10 @@ export class StreamSimulator {
     }) {
         this.data_frame_renderers = data_frame_renderers;
         this.data_stream_renderers = data_stream_renderers;
-        //this.rowReadDelay = rowReadDelay;
+        this.dataStreamRenderersMap = new Map(
+            data_stream_renderers.map(dsr => [dsr.data_stream, dsr])
+        );
+        this.rowRenderers = new Map();
         this.animationTime = 0;
         this.lastRowReadTime = 0;
         //console.log("dataReaders.length = " + dataReaders.length);
@@ -31,10 +34,8 @@ export class StreamSimulator {
 
     static instance = null;
     static updateAll(frame) {
-        //console.log("updating all...");
         if(StreamSimulator.instance != null)
         {
-            //console.log("updating instance");
             StreamSimulator.instance.update(frame);
         }
     }
@@ -56,43 +57,55 @@ export class StreamSimulator {
 
             for(let j = 0; j < readRows.length; j++) {
                 //dr.upstream.push(readRows[j].row, readRows[j].arrival_time);
-                const rowRenderer = new RowRenderer(readRows[j].row, 100, 100);
-                this.layer.add(rowRenderer.shape);
-
-                for(const sr of this.data_stream_renderers) {
-                    if(sr.data_stream == dr.upstream) {
-                        sr.addRowRenderer(rowRenderer);
-                        break;
-                    }
-                    /*else
-                        throw new Error("no matching stream renderer found");*/
+                const rowRenderer = this.createRowRenderer(readRows[j].row, 100, 100);
+                //this.layer.add(rowRenderer.shape);
+                if(this.dataStreamRenderersMap.has(dr.upstream)) {
+                    this.dataStreamRenderersMap.get(dr.upstream)
+                        .addRowRenderer(rowRenderer);
                 }
+                else
+                    throw new Error("No matching stream renderer found");
             }
         }
 
-        for(let i = 0; i < this.data_stream_renderers.length; i++) {
-            const streamRenderer = this.data_stream_renderers[i];
-            streamRenderer.updateRows(this.animationTime);
-        }
+        for(let i = 0; i < this.dataReaders.length; i++) {
+            let upstream = this.dataReaders[i].upstream;
+            while(upstream != null) {
+                const dsr = this.dataStreamRenderersMap.has(upstream) ?
+                    this.dataStreamRenderersMap.get(upstream) : null;
+                
+                if(dsr == null)
+                    throw new Error("No matching stream renderer found");
+                
+                dsr.updateRows(this.animationTime);
 
+                if(upstream.upstream != null) {
+                    const transferedRows = upstream
+                        .pullTransfered(this.animationTime);
+                    
+                    transferedRows.forEach(r => {
+                        upstream.upstream.push(
+                            r.row, r.arrival_time + upstream.transfer_delay
+                        );
 
-
-
-
-        /*if(this.animationTime > this.lastRowReadTime + rowReadDelay) {
-            for(let i = 0; i < data_frame_renderers.length; i++) {
-                if(dataframe.rows.length > 0) {
-                    const row = dataframe.rows.shift();
-                    stream.push(row, lastRowReadTime + rowReadDelay);
-                    const rowRenderer = new RowRenderer(row, 100, 100);
-                    layer.add(rowRenderer.shape);
-                    streamRenderer.addRowRenderer(rowRenderer);
-
-                    this.lastRowReadTime += this.rowReadDelay;
+                        dsr.removeRowRenderer(r.row);
+                        this.dataStreamRenderersMap.get(upstream.upstream)
+                            .addRowRenderer(this.rowRenderers.get(r.row));
+                    });
                 }
+
+                upstream = upstream.upstream;
             }
         }
+    }
 
-        streamRenderer.updateRows(animationTime);*/
+    createRowRenderer(row, x, y) {
+        if(this.rowRenderers.has(row))
+            throw new Error("A renderer already exists for " + row);
+
+        const rowRenderer = new RowRenderer(row, x, y);
+        this.rowRenderers.set(row, rowRenderer);
+        this.layer.add(rowRenderer.shape);
+        return rowRenderer;
     }
 }
