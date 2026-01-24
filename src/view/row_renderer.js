@@ -63,4 +63,9 @@ export class RowRenderer {
             height: 30,
         }));
     }
+
+    //call this to redraw this.shape after this.row values were changed
+    redrawShape() {
+
+    }
 }

@@ -45,9 +45,11 @@ export class DataStreamRenderer {
             const abs_t = current_time - this.data_stream.rows[i].arrival_time;
             if(abs_t < 0) {
                 this.rows_renderers[i].shape.x(this.start_x);
+                this.rows_renderers[i].shape.y(this.start_y);
             }
             else if(abs_t > this.data_stream.transfer_delay) {
                 this.rows_renderers[i].shape.x(this.end_x);
+                this.rows_renderers[i].shape.y(this.end_y);
             }
             else {
                 const norm_t = abs_t / this.data_stream.transfer_delay;

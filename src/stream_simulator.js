@@ -10,11 +10,20 @@ export class StreamSimulator {
         layer,
     }) {
         this.data_frame_renderers = data_frame_renderers;
+        this.dataFrameRenderersMap = new Map(
+            data_frame_renderers.map(dfr => [dfr.dataframe, dfr])
+        );
         this.data_stream_renderers = data_stream_renderers;
         this.dataStreamRenderersMap = new Map(
             data_stream_renderers.map(dsr => [dsr.data_stream, dsr])
         );
-        this.rowRenderers = new Map();
+        this.rowRenderersMap = new Map();
+        for(let i = 0; i < data_frame_renderers.length; i++) {
+            data_frame_renderers[i].rowRenderers.forEach(
+                rr => this.rowRenderersMap.set(rr.row, rr)
+            );
+        }
+        //console.log(this.rowRenderersMap);
         this.animationTime = 0;
         this.lastRowReadTime = 0;
         //console.log("dataReaders.length = " + dataReaders.length);
@@ -42,10 +51,10 @@ export class StreamSimulator {
 
     update(frame) {
         //const time = frame.time;
-        const timeDiff = frame.timeDiff;
+        const timeDiff = frame.timeDiff / 1000;
         //const frameRate = frame.frameRate;
 
-        this.animationTime += timeDiff / 1000;
+        this.animationTime += timeDiff;// / 1000;
 
         for(let i = 0; i < this.dataReaders.length; i++) {
             const dr = this.dataReaders[i];
@@ -55,9 +64,16 @@ export class StreamSimulator {
 
             const readRows = dr.update(this.animationTime);
 
+            if(readRows.length > 0)
+                this.dataFrameRenderersMap.get(dr.sourceDF)
+                    .updateRowRenderers(this.rowRenderersMap);
+
             for(let j = 0; j < readRows.length; j++) {
-                //dr.upstream.push(readRows[j].row, readRows[j].arrival_time);
-                const rowRenderer = this.createRowRenderer(readRows[j].row, 100, 100);
+                //const rowRenderer = this.createRowRenderer(readRows[j].row, 100, 100);
+                const rowRenderer = this.rowRenderersMap.get(readRows[j].row);
+                const absPos = rowRenderer.shape.getAbsolutePosition();
+                rowRenderer.shape.moveTo(this.layer);
+                rowRenderer.shape.setAbsolutePosition(absPos);
                 //this.layer.add(rowRenderer.shape);
                 if(this.dataStreamRenderersMap.has(dr.upstream)) {
                     this.dataStreamRenderersMap.get(dr.upstream)
@@ -90,21 +106,25 @@ export class StreamSimulator {
 
                         dsr.removeRowRenderer(r.row);
                         this.dataStreamRenderersMap.get(upstream.upstream)
-                            .addRowRenderer(this.rowRenderers.get(r.row));
+                            .addRowRenderer(this.rowRenderersMap.get(r.row));
                     });
                 }
 
                 upstream = upstream.upstream;
             }
         }
+
+        for(let i = 0; i < this.data_frame_renderers.length; i++) {
+            this.data_frame_renderers[i].updateRows(timeDiff);
+        }
     }
 
     createRowRenderer(row, x, y) {
-        if(this.rowRenderers.has(row))
+        if(this.rowRenderersMap.has(row))
             throw new Error("A renderer already exists for " + row);
 
         const rowRenderer = new RowRenderer(row, x, y);
-        this.rowRenderers.set(row, rowRenderer);
+        this.rowRenderersMap.set(row, rowRenderer);
         this.layer.add(rowRenderer.shape);
         return rowRenderer;
     }

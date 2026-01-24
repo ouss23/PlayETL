@@ -103,7 +103,7 @@ const dataframeRenderer = new DataFrameRenderer({
     x: 500,
     y: 300,
     elements_offset: 50,
-    max_height: 3,
+    max_height: 2,
     padding: 5,
 });
 
