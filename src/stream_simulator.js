@@ -1,4 +1,6 @@
+import { DataFrame } from "./model/data_frame.js";
 import { DataReader } from "./model/data_reader.js";
+import { DataStream } from "./model/data_stream.js";
 import { RowRenderer } from "./view/row_renderer.js";
 
 export class StreamSimulator {
@@ -86,7 +88,7 @@ export class StreamSimulator {
 
         for(let i = 0; i < this.dataReaders.length; i++) {
             let upstream = this.dataReaders[i].upstream;
-            while(upstream != null) {
+            while((upstream != null) && (upstream instanceof DataStream)) {
                 const dsr = this.dataStreamRenderersMap.has(upstream) ?
                     this.dataStreamRenderersMap.get(upstream) : null;
                 
@@ -99,15 +101,31 @@ export class StreamSimulator {
                     const transferedRows = upstream
                         .pullTransfered(this.animationTime);
                     
-                    transferedRows.forEach(r => {
-                        upstream.upstream.push(
-                            r.row, r.arrival_time + upstream.transfer_delay
-                        );
+                    if(transferedRows.length > 0) {
+                        if(upstream.upstream instanceof DataFrame) {
+                            const df = upstream.upstream;
+                            const dfr = this.dataFrameRenderersMap.get(df);
+                            transferedRows.forEach(r => {
+                                df.rows.push(r.row);
 
-                        dsr.removeRowRenderer(r.row);
-                        this.dataStreamRenderersMap.get(upstream.upstream)
-                            .addRowRenderer(this.rowRenderersMap.get(r.row));
-                    });
+                                dsr.removeRowRenderer(r.row);
+                                dfr.updateRowRenderers(this.rowRenderersMap);
+                            });
+                            //break;
+                        }
+                        else {
+                            const usr = this.dataStreamRenderersMap
+                                .get(upstream.upstream);
+                            transferedRows.forEach(r => {
+                                upstream.upstream.push(
+                                    r.row, r.arrival_time + upstream.transfer_delay
+                                );
+
+                                dsr.removeRowRenderer(r.row);
+                                usr.addRowRenderer(this.rowRenderersMap.get(r.row));
+                            });
+                        }
+                    }
                 }
 
                 upstream = upstream.upstream;

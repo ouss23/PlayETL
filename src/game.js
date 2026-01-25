@@ -96,6 +96,10 @@ const dataframe = new DataFrame(
         new Row(["star", "green", "S"], RowRenderer.shapeSchema),
         new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
         new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
+        new Row(["star", "green", "S"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
+        new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
     ]
 );
 const dataframeRenderer = new DataFrameRenderer({
@@ -107,24 +111,29 @@ const dataframeRenderer = new DataFrameRenderer({
     padding: 5,
 });
 
+const dataframe2 = new DataFrame(
+    "target_df",
+    RowRenderer.shapeSchema,
+    [
+        //new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
+    ]
+);
+const dataframeRenderer2 = new DataFrameRenderer({
+    dataframe: dataframe2,
+    x: 600,
+    y: 50,
+    elements_offset: 50,
+    max_height: 2,
+    padding: 5,
+});
+
 layer.add(
     dataframeRenderer.shape
 );
-//console.log(dataframe);
+layer.add(
+    dataframeRenderer2.shape
+);
 
-/*const star = new RowRenderer(
-    new Row(["star", "purple", "X"], RowRenderer.shapeSchema),
-    50,
-    50,
-).shape;
-layer.add(star);*/
-
-/*const bgLayer = new Konva.Layer();
-bgLayer.add(new Konva.Line({
-    points: [0, 200, 1000, 200],
-    stroke: "black",
-    strokeWidth: 2
-}));*/
 const l = createGridLayer({width:1500, height:1500, cellSize:50});
 stage.add(l)
 stage.add(layer);
@@ -138,31 +147,35 @@ layer.draw();
 const stream = new DataStream(
     null,
     null,
-    5/2,
+    1/2,
 );
 
 const stream2 = new DataStream(
     stream,
-    null,
+    dataframe2,
     5/2,
 );
 
 stream.upstream = stream2;
 
+const dfFirstRowPosition = dataframeRenderer.firstRowPosition();
+const dfTopPoint = dataframeRenderer.topPoint();
+const df2BottomPoint = dataframeRenderer2.bottomPoint();
+
 const streamRenderer = new DataStreamRenderer({
     data_stream: stream,
-    start_x: 100,
-    start_y: 100,
-    end_x: 500,
-    end_y: 300,
+    start_x: dfFirstRowPosition.x,
+    start_y: dfFirstRowPosition.y,
+    end_x: dfTopPoint.x,
+    end_y: dfTopPoint.y,
 });
 
 const stream2Renderer = new DataStreamRenderer({
     data_stream: stream2,
-    start_x: 500,
-    start_y: 300,
-    end_x: 1000,
-    end_y: 300,
+    start_x: dfTopPoint.x,
+    start_y: dfTopPoint.y,
+    end_x: df2BottomPoint.x,
+    end_y: df2BottomPoint.y,
 });
 
 const dataReader = new DataReader(
@@ -173,44 +186,14 @@ const dataReader = new DataReader(
 
 stream.downstream = dataReader;
 
-let animationTime = 0;
-let lastRowReadTime = 0;
-let rowReadDelay = 1/2;
-const lerp = (x, y, a) => x * (1 - a) + y * a;
-
 const simulator = new StreamSimulator({
-    data_frame_renderers: [dataframeRenderer],
+    data_frame_renderers: [dataframeRenderer, dataframeRenderer2],
     data_stream_renderers: [streamRenderer, stream2Renderer],
     dataReaders: [dataReader],
     layer: layer,
 });
 
 const anim = simulator.animation;
-
-/*const anim = new Konva.Animation(
-    function(frame) {
-        const time = frame.time;
-        const timeDiff = frame.timeDiff;
-        //const frameRate = frame.frameRate;
-
-        animationTime += timeDiff / 1000;
-
-        if(animationTime > lastRowReadTime + rowReadDelay) {
-            if(dataframe.rows.length > 0) {
-                const row = dataframe.rows.shift();
-                stream.push(row, lastRowReadTime + rowReadDelay);
-                const rowRenderer = new RowRenderer(row, 100, 100);
-                layer.add(rowRenderer.shape);
-                streamRenderer.addRowRenderer(rowRenderer);
-
-                lastRowReadTime += rowReadDelay;
-            }
-        }
-
-        streamRenderer.updateRows(animationTime);
-    },
-    layer
-);*/
 
 anim.start();
 

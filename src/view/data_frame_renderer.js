@@ -10,7 +10,7 @@ export class DataFrameRenderer {
         padding = 10,
         max_width = null,
         max_height = null,
-        rowAnimationDuration = 1 / 2,
+        columnsDisplayCount = 4,
         rowAnimationDamp = 6,
     }) {
         this.dataframe = dataframe;
@@ -26,19 +26,21 @@ export class DataFrameRenderer {
             throw new Error("DataFrameRenderer must not have limits both on " +
                 "width and height");
         
-        const width = (max_width == null) ?
+        /*const width = (max_width == null) ?
             ((max_height == null) ?
                 Math.ceil(Math.sqrt(dataframe.rows.length)) :
                 Math.ceil(dataframe.rows.length / max_height)) :
-            Math.min(max_width, dataframe.rows.length);
-        const height = Math.ceil(dataframe.rows.length / width);
+            Math.min(max_width, dataframe.rows.length);*/
+
+        const width = columnsDisplayCount;
+        const height = Math.max(1, Math.ceil(dataframe.rows.length / width));
         this.width = width;
         this.height = height;
 
         this.shape = new Konva.Group({
             x: x,
             y: y,
-            draggable: true,
+            //draggable: true,
         });
 
         this.shape.add(
@@ -69,6 +71,27 @@ export class DataFrameRenderer {
             this.shape.add(
                 rowRenderer.shape
             );
+        }
+    }
+
+    topPoint() {
+        return {
+            x: this.shape.x() + (this.width * this.elements_offset / 2) + this.padding,
+            y: this.shape.y()
+        }
+    }
+
+    bottomPoint() {
+        return {
+            x: this.shape.x() + (this.width * this.elements_offset / 2) + this.padding,
+            y: this.shape.y() + this.height * this.elements_offset + 2 * this.padding
+        }
+    }
+
+    firstRowPosition() {
+        return {
+            x: this.shape.x() + this.padding + this.elements_offset / 2,
+            y: this.shape.y() + this.padding + this.elements_offset / 2
         }
     }
 
