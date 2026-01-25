@@ -73,7 +73,6 @@ export class StreamSimulator {
             }
 
             for(let j = 0; j < readRows.length; j++) {
-                //const rowRenderer = this.createRowRenderer(readRows[j].row, 100, 100);
                 const rowRenderer = this.rowRenderersMap.get(readRows[j].row);
                 const absPos = rowRenderer.shape.getAbsolutePosition();
                 rowRenderer.shape.moveTo(this.layer);

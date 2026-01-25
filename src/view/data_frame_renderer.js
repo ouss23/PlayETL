@@ -59,6 +59,36 @@ export class DataFrameRenderer {
 
         this.shape.add(this.layout);
 
+        this.leftLabel = new Konva.Text({
+            x: 0,
+            y: -13,
+            text: dataframe.name + " (Dataframe)",
+            fontSize: 11,
+            fontFamily: 'Avenir',
+            fill: '#1b96cfff',
+            align: 'left',
+            //verticalAlign: 'top',
+            width: 120,
+            height: 20,
+        });
+
+        this.shape.add(this.leftLabel);
+
+        this.rightLabel = new Konva.Text({
+            x: padding * 2 + width * elements_offset - 120,
+            y: -13,
+            text: "Partition 1/1",
+            fontSize: 11,
+            fontFamily: 'Avenir',
+            fill: '#1b96cfff',
+            align: 'right',
+            //verticalAlign: 'top',
+            width: 120,
+            height: 20,
+        });
+
+        this.shape.add(this.rightLabel);
+
         this.rowRenderers = [];
         for(let i = 0; i < dataframe.rows.length; i++)
         {

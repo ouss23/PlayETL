@@ -88,7 +88,7 @@ layer.add(star);*/
 
 //const row = new Row(["star", "white", "S"], RowRenderer.shapeSchema);
 const dataframe = new DataFrame(
-    "sample_df",
+    "source_df",
     RowRenderer.shapeSchema,
     [
         new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
