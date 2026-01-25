@@ -66,9 +66,11 @@ export class StreamSimulator {
 
             const readRows = dr.update(this.animationTime);
 
-            if(readRows.length > 0)
-                this.dataFrameRenderersMap.get(dr.sourceDF)
-                    .updateRowRenderers(this.rowRenderersMap);
+            if(readRows.length > 0) {
+                const dfr = this.dataFrameRenderersMap.get(dr.sourceDF);
+                dfr.updateRowRenderers(this.rowRenderersMap);
+                dfr.updateLayout();
+            }
 
             for(let j = 0; j < readRows.length; j++) {
                 //const rowRenderer = this.createRowRenderer(readRows[j].row, 100, 100);
@@ -110,6 +112,7 @@ export class StreamSimulator {
 
                                 dsr.removeRowRenderer(r.row);
                                 dfr.updateRowRenderers(this.rowRenderersMap);
+                                dfr.updateLayout();
                             });
                             //break;
                         }

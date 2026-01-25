@@ -43,21 +43,21 @@ export class DataFrameRenderer {
             //draggable: true,
         });
 
-        this.shape.add(
-            new Konva.Rect({
-                x: 0,
-                y: 0,
-                width: padding * 2 + width * elements_offset,
-                height: padding * 2 + height * elements_offset,
-                //fill: '#ffffff16',
-                //draggable: true,
-                cornerRadius: 2,
-                stroke: '#1b96cfff',
-                strokeWidth: 2,
-                lineCap: 'round',
-                dash: [10, 10],
-            })
-        );
+        this.layout = new Konva.Rect({
+            x: 0,
+            y: 0,
+            width: padding * 2 + width * elements_offset,
+            height: padding * 2 + height * elements_offset,
+            //fill: '#ffffff16',
+            //draggable: true,
+            cornerRadius: 2,
+            stroke: '#1b96cfff',
+            strokeWidth: 2,
+            lineCap: 'round',
+            dash: [10, 10],
+        });
+
+        this.shape.add(this.layout);
 
         this.rowRenderers = [];
         for(let i = 0; i < dataframe.rows.length; i++)
@@ -111,6 +111,11 @@ export class DataFrameRenderer {
                 rr.shape.setAbsolutePosition(absPos);
             }
         );
+    }
+
+    updateLayout() {
+        this.height = Math.max(1, Math.ceil(this.dataframe.rows.length / this.width));
+        this.layout.height(this.padding * 2 + this.height * this.elements_offset);
     }
 
     updateRows(deltaTime) {
