@@ -5,4 +5,8 @@ export class Row {
     this.values = values;
     this.schema = schema;
   }
+
+  copy() {
+    return new Row(this.values.map(v => v), this.schema);
+  }
 }

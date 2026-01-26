@@ -10,6 +10,8 @@ import { DataStream } from "./model/data_stream.js";
 import { DataStreamRenderer } from "./view/data_stream_renderer.js";
 import { StreamSimulator } from "./stream_simulator.js";
 import { DataReader } from "./model/data_reader.js";
+import { FilterTransformer } from "./model/data_frame_transformers/filter_transformer.js";
+import { DataStreamTransformer } from "./model/data_stream_transformer.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -127,11 +129,25 @@ const dataframeRenderer2 = new DataFrameRenderer({
     padding: 5,
 });
 
+const dataframeFiltered = new FilterTransformer("shape", (v => v == "star"))
+    .transformDataFrame(dataframe/*, true*/);
+const dataframeFilteredRenderer = new DataFrameRenderer({
+    dataframe: dataframeFiltered,
+    x: 800,
+    y: 300,
+    elements_offset: 50,
+    max_height: 2,
+    padding: 5,
+});
+
 layer.add(
     dataframeRenderer.shape
 );
 layer.add(
     dataframeRenderer2.shape
+);
+layer.add(
+    dataframeFilteredRenderer.shape
 );
 
 const l = createGridLayer({width:1500, height:1500, cellSize:50});
@@ -150,13 +166,20 @@ const stream = new DataStream(
     1/2,
 );
 
-const stream2 = new DataStream(
+const streamTransformer = new DataStreamTransformer(
     stream,
+    null,
+    [new FilterTransformer("shape", (v => v == "star"))]
+)
+
+const stream2 = new DataStream(
+    streamTransformer,
     dataframe2,
     5/2,
 );
 
-stream.upstream = stream2;
+stream.upstream = streamTransformer;
+streamTransformer.upstream = stream2;
 
 const dfFirstRowPosition = dataframeRenderer.firstRowPosition();
 const dfTopPoint = dataframeRenderer.topPoint();

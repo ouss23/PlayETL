@@ -1,6 +1,7 @@
 import { DataFrame } from "./model/data_frame.js";
 import { DataReader } from "./model/data_reader.js";
 import { DataStream } from "./model/data_stream.js";
+import { DataStreamTransformer } from "./model/data_stream_transformer.js";
 import { RowRenderer } from "./view/row_renderer.js";
 
 export class StreamSimulator {
@@ -98,15 +99,36 @@ export class StreamSimulator {
                 
                 dsr.updateRows(this.animationTime);
 
-                if(upstream.upstream != null) {
+                let next = upstream.upstream;
+                if(next != null) {
                     const transferedRows = upstream
                         .pullTransfered(this.animationTime);
+                    let transformedRows = transferedRows;
                     
-                    if(transferedRows.length > 0) {
-                        if(upstream.upstream instanceof DataFrame) {
-                            const df = upstream.upstream;
+                    while(next instanceof DataStreamTransformer) {
+                        transformedRows = transformedRows
+                            .map(r => r == null ? null : next.apply(r));
+                            //.filter(r => r != null)
+                        
+                        next = next.upstream;
+                    }
+
+                    transformedRows.forEach((r, index) => {
+                        if(r == null) {
+                            const deletedRow = transferedRows[index].row;
+                            dsr.removeRowRenderer(deletedRow);
+                            this.rowRenderersMap.get(deletedRow).shape.destroy();
+                            this.rowRenderersMap.delete(deletedRow);
+                        }
+                    });
+
+                    transformedRows = transformedRows.filter(r => r != null);
+                    
+                    if(transformedRows.length > 0) {
+                        if(next instanceof DataFrame) {
+                            const df = next;
                             const dfr = this.dataFrameRenderersMap.get(df);
-                            transferedRows.forEach(r => {
+                            transformedRows.forEach(r => {
                                 df.rows.push(r.row);
 
                                 dsr.removeRowRenderer(r.row);
@@ -117,9 +139,9 @@ export class StreamSimulator {
                         }
                         else {
                             const usr = this.dataStreamRenderersMap
-                                .get(upstream.upstream);
-                            transferedRows.forEach(r => {
-                                upstream.upstream.push(
+                                .get(next);
+                            transformedRows.forEach(r => {
+                                next.push(
                                     r.row, r.arrival_time + upstream.transfer_delay
                                 );
 
@@ -130,7 +152,7 @@ export class StreamSimulator {
                     }
                 }
 
-                upstream = upstream.upstream;
+                upstream = next;
             }
         }
 
