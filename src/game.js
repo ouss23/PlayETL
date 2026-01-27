@@ -12,6 +12,7 @@ import { StreamSimulator } from "./stream_simulator.js";
 import { DataReader } from "./model/data_reader.js";
 import { FilterTransformer } from "./model/data_frame_transformers/filter_transformer.js";
 import { DataStreamTransformer } from "./model/data_stream_transformer.js";
+import { TransformerRenderer } from "./view/transformer_renderer.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -41,7 +42,7 @@ const rect = new Konva.Rect({
     lineCap: 'round',
 });
 
-const rect2 = new Konva.Rect({
+/*const rect2 = new Konva.Rect({
     x: 0,
     y: 20,
     width: 150,
@@ -51,7 +52,7 @@ const rect2 = new Konva.Rect({
     //cornerRadius: 10,
     stroke: '#555',
     strokeWidth: 2,
-});
+});*/
 
 const text = new Konva.Text({
     x: 0,
@@ -71,24 +72,9 @@ group.add(text);
 
 //layer.add(text);
 
-/*const star = new RowRenderer(
-    new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
-    50,
-    50,
-).shape;
-
-const diamond = new RowRenderer(
-    new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
-    250,
-    150,
-).shape;*/
-
 //layer.add(createGridLayer(200, 200))
 layer.add(group);
-/*layer.add(diamond);
-layer.add(star);*/
 
-//const row = new Row(["star", "white", "S"], RowRenderer.shapeSchema);
 const dataframe = new DataFrame(
     "source_df",
     RowRenderer.shapeSchema,
@@ -150,6 +136,12 @@ layer.add(
     dataframeFilteredRenderer.shape
 );
 
+layer.add(new TransformerRenderer({
+    transformer: null,
+    x: 150,
+    y: 50,
+}).shape);
+
 const l = createGridLayer({width:1500, height:1500, cellSize:50});
 stage.add(l)
 stage.add(layer);
@@ -169,7 +161,10 @@ const stream = new DataStream(
 const streamTransformer = new DataStreamTransformer(
     stream,
     null,
-    [new FilterTransformer("shape", (v => v == "star"))]
+    [
+        new FilterTransformer("shape", (v => v == "star")),
+        new FilterTransformer("color", (v => v == "green"))
+    ]
 )
 
 const stream2 = new DataStream(
