@@ -113,12 +113,18 @@ export class StreamSimulator {
                         next = next.upstream;
                     }
 
+                    const appliedTransformations = next != upstream.upstream;
+
                     transformedRows.forEach((r, index) => {
                         if(r == null) {
                             const deletedRow = transferedRows[index].row;
                             dsr.removeRowRenderer(deletedRow);
                             this.rowRenderersMap.get(deletedRow).shape.destroy();
                             this.rowRenderersMap.delete(deletedRow);
+                        }
+                        else if(appliedTransformations) {
+                            this.rowRenderersMap.get(transferedRows[index].row)
+                                .redrawShape();
                         }
                     });
 

@@ -13,6 +13,8 @@ import { DataReader } from "./model/data_reader.js";
 import { FilterTransformer } from "./model/data_frame_transformers/filter_transformer.js";
 import { DataStreamTransformer } from "./model/data_stream_transformer.js";
 import { TransformerRenderer } from "./view/transformer_renderer.js";
+import { UpdateTransformer } from "./model/data_frame_transformers/update_transformer.js";
+import { Arrow } from "./view/shapes/arrow.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -21,86 +23,33 @@ const stage = new Konva.Stage({
 });
 
 const layer = new Konva.Layer();
-//stage.add(layer);
-
-const group = new Konva.Group({
-    x: 50,
-    y: 50,
-    draggable: true,
-});
-
-const rect = new Konva.Rect({
-    x: 0,
-    y: 0,
-    width: 150,
-    height: 70,
-    fill: '#919191ff',
-    //draggable: true,
-    cornerRadius: 2,
-    stroke: '#555',
-    strokeWidth: 2,
-    lineCap: 'round',
-});
-
-/*const rect2 = new Konva.Rect({
-    x: 0,
-    y: 20,
-    width: 150,
-    height: 74,
-    fill: '#737373ff',
-    //draggable: true,
-    //cornerRadius: 10,
-    stroke: '#555',
-    strokeWidth: 2,
-});*/
-
-const text = new Konva.Text({
-    x: 0,
-    y: 25,
-    text: '⚠️ Dataframe ⚠️',
-    fontSize: 20,
-    fontFamily: 'Avenir',
-    fill: '#555',
-    align: 'center',
-    width: 150,
-    height: 100,
-});
-
-//group.add(rect2);
-group.add(rect);
-group.add(text);
-
-//layer.add(text);
-
-//layer.add(createGridLayer(200, 200))
-layer.add(group);
 
 const dataframe = new DataFrame(
     "source_df",
     RowRenderer.shapeSchema,
     [
         new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
-        new Row(["star", "green", "S"], RowRenderer.shapeSchema),
         new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
-        new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "A"], RowRenderer.shapeSchema),
-        new Row(["star", "green", "S"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
-        new Row(["diamond", "green", "C"], RowRenderer.shapeSchema),
+        new Row(["star", "green", "C"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "D"], RowRenderer.shapeSchema),
+        new Row(["diamond", "green", "E"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "F"], RowRenderer.shapeSchema),
+        new Row(["star", "green", "G"], RowRenderer.shapeSchema),
+        new Row(["diamond", "purple", "H"], RowRenderer.shapeSchema),
+        new Row(["diamond", "green", "I"], RowRenderer.shapeSchema),
     ]
 );
 const dataframeRenderer = new DataFrameRenderer({
     dataframe: dataframe,
     x: 500,
-    y: 300,
+    y: 400,
     elements_offset: 50,
     max_height: 2,
     padding: 5,
 });
 
 const dataframe2 = new DataFrame(
-    "target_df",
+    "new_df",
     RowRenderer.shapeSchema,
     [
         //new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
@@ -108,19 +57,8 @@ const dataframe2 = new DataFrame(
 );
 const dataframeRenderer2 = new DataFrameRenderer({
     dataframe: dataframe2,
-    x: 600,
+    x: 500,
     y: 50,
-    elements_offset: 50,
-    max_height: 2,
-    padding: 5,
-});
-
-const dataframeFiltered = new FilterTransformer("shape", (v => v == "star"))
-    .transformDataFrame(dataframe/*, true*/);
-const dataframeFilteredRenderer = new DataFrameRenderer({
-    dataframe: dataframeFiltered,
-    x: 800,
-    y: 300,
     elements_offset: 50,
     max_height: 2,
     padding: 5,
@@ -132,23 +70,17 @@ layer.add(
 layer.add(
     dataframeRenderer2.shape
 );
-layer.add(
-    dataframeFilteredRenderer.shape
-);
-
-layer.add(new TransformerRenderer({
-    transformer: null,
-    x: 150,
-    y: 50,
-}).shape);
 
 const l = createGridLayer({width:1500, height:1500, cellSize:50});
 stage.add(l)
 stage.add(layer);
+const layer2 = new Konva.Layer();
+stage.add(layer2);
 l.draw();
 //stage.add(bgLayer);
 //bgLayer.draw()
 layer.draw();
+layer2.draw();
 
 //console.log("main")
 
@@ -163,22 +95,63 @@ const streamTransformer = new DataStreamTransformer(
     null,
     [
         new FilterTransformer("shape", (v => v == "star")),
-        new FilterTransformer("color", (v => v == "green"))
+        //new FilterTransformer("color", (v => v == "green"))
+        new UpdateTransformer("color", "orange")
     ]
 )
 
 const stream2 = new DataStream(
+    stream,
     streamTransformer,
-    dataframe2,
-    5/2,
+    2/2,
 );
 
-stream.upstream = streamTransformer;
-streamTransformer.upstream = stream2;
+const stream3 = new DataStream(
+    streamTransformer,
+    dataframe2,
+    2/2,
+);
+//df1 > reader > stream > stream2 > streamTransformer > stream3 > df2
+stream.upstream = stream2;
+streamTransformer.upstream = stream3;
+streamTransformer.downstream = stream2;
 
 const dfFirstRowPosition = dataframeRenderer.firstRowPosition();
 const dfTopPoint = dataframeRenderer.topPoint();
 const df2BottomPoint = dataframeRenderer2.bottomPoint();
+const transformerPosition = {x: 500 + 105 - 75, y: 200};
+const transformerCenter = {
+    x: transformerPosition.x + 75,
+    y: transformerPosition.y + 60 - 7,
+};
+
+const arrow1 = new Arrow({
+    startX: dfTopPoint.x,
+    startY: dfTopPoint.y - 15,
+    endX: transformerCenter.x,
+    endY: transformerCenter.y + 60 + 10,
+    lineWidth: 30,
+    pointerHeight: 15,
+    pointerWidth: 40,
+    fill: '#9ac3d9ff',
+    //stroke: 'gray',
+    //strokeWidth: 30
+});
+layer.add(arrow1.shape);
+
+const arrow2 = new Arrow({
+    startX: dfTopPoint.x,
+    startY: transformerCenter.y - 60 - 10,
+    endX: df2BottomPoint.x,
+    endY: df2BottomPoint.y + 15,
+    lineWidth: 30,
+    pointerHeight: 15,
+    pointerWidth: 40,
+    fill: '#9ac3d9ff',
+    //stroke: 'gray',
+    //strokeWidth: 30
+});
+layer.add(arrow2.shape);
 
 const streamRenderer = new DataStreamRenderer({
     data_stream: stream,
@@ -192,9 +165,35 @@ const stream2Renderer = new DataStreamRenderer({
     data_stream: stream2,
     start_x: dfTopPoint.x,
     start_y: dfTopPoint.y,
+    end_x: transformerCenter.x,
+    end_y: transformerCenter.y + 60 - 20,
+});
+
+const stream3Renderer = new DataStreamRenderer({
+    data_stream: stream3,
+    start_x: transformerCenter.x,
+    start_y: transformerCenter.y - 60 + 20,
     end_x: df2BottomPoint.x,
     end_y: df2BottomPoint.y,
 });
+
+const transformerRenderer = new TransformerRenderer({
+    transformer: streamTransformer,
+    x: transformerPosition.x,
+    y: transformerPosition.y,
+    width: 150,
+    height: 60,
+    displayTexts: ["⚙️Filter", "⚙️Update"],
+    displayContents: ["shape = star", "color = orange"]
+});
+
+layer2.add(
+    transformerRenderer.shape
+);
+/*transformerRenderer.shape.moveToTop();
+console.log("transformer Z : " + transformerRenderer.shape.zIndex());
+transformerRenderer.shape.zIndex(50);
+console.log("transformer Z : " + transformerRenderer.shape.zIndex());*/
 
 const dataReader = new DataReader(
     dataframe,
@@ -206,7 +205,7 @@ stream.downstream = dataReader;
 
 const simulator = new StreamSimulator({
     data_frame_renderers: [dataframeRenderer, dataframeRenderer2],
-    data_stream_renderers: [streamRenderer, stream2Renderer],
+    data_stream_renderers: [streamRenderer, stream2Renderer, stream3Renderer],
     dataReaders: [dataReader],
     layer: layer,
 });

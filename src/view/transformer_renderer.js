@@ -8,6 +8,10 @@ export class TransformerRenderer {
         y = 0,
         width = 150,
         height = 60,
+        //temporary for testing
+        displayTexts = null,
+        //temporary for testing
+        displayContents = null,
     }) {
         this.transformer = transformer;
         this.x = x;
@@ -20,8 +24,37 @@ export class TransformerRenderer {
             y: y,
             //draggable: true,
         });
+    
+        transformer.dataFrameTransformers.toReversed().forEach(
+            (t, i) => this.shape.add(
+                TransformerRenderer.drawSingleTransformer(
+                    t,
+                    0,
+                    i * height,
+                    width,
+                    height,
+                    displayTexts == null ? null : displayTexts.toReversed()[i],
+                    displayContents == null ? null : displayContents.toReversed()[i]
+                )
+            )
+        );
+    }
 
-        this.layout = new Konva.Shape({
+    static drawSingleTransformer(
+        transformer,
+        x,
+        y,
+        width,
+        height,
+        displayText = null,
+        displayContent = null
+    ) {
+        const group = new Konva.Group({
+            x: x,
+            y: y,
+        });
+
+        const layout = new Konva.Shape({
             sceneFunc: function (context, shape) {
                 context.beginPath();
                 context.moveTo(0, 0);
@@ -67,10 +100,10 @@ export class TransformerRenderer {
             y: 0,
         });
 
-        this.title = new Konva.Text({
+        const title = new Konva.Text({
             x: 0,
             y: 10,
-            text: '⚙️Filter',
+            text: displayText == null ? '⚙️Filter' : displayText,
             fontSize: 18,
             fontFamily: 'Avenir',
             fill: '#555',
@@ -79,10 +112,10 @@ export class TransformerRenderer {
             height: height + 30,
         });
 
-        this.content = new Konva.Text({
+        const content = new Konva.Text({
             x: 0,
             y: 32,
-            text: 'color = green',
+            text: displayContent == null ? 'color = green' : displayContent,
             fontSize: 14,
             fontFamily: 'Avenir',
             fill: '#555',
@@ -91,8 +124,10 @@ export class TransformerRenderer {
             height: height + 30,
         });
 
-        this.shape.add(this.layout);
-        this.shape.add(this.title);
-        this.shape.add(this.content);
+        group.add(layout);
+        group.add(title);
+        group.add(content);
+
+        return group;
     }
 }

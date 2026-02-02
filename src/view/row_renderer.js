@@ -22,13 +22,20 @@ export class RowRenderer {
             throw new Error("Invalid shape color " + row.values[1]);
 
         this.row = row;
-        const shapeColor = ShapeColor.defaultColors.get(row.values[1]);
         this.shape = new Konva.Group({
             x: x,
             y: y,
             draggable: false,
         });
-        switch(row.values[0]) {
+
+        this.redrawShape();
+    }
+
+    //call this to redraw this.shape after this.row values were changed
+    redrawShape() {
+        this.shape.destroyChildren();
+        const shapeColor = ShapeColor.defaultColors.get(this.row.values[1]);
+        switch(this.row.values[0]) {
             case "star":
                 this.shape.add(createStar({
                     x: 0,
@@ -54,7 +61,7 @@ export class RowRenderer {
         this.shape.add(new Konva.Text({
             x: -10,
             y: -9,
-            text: row.values[2] == null ? "-" : row.values[2],
+            text: this.row.values[2] == null ? "-" : this.row.values[2],
             fontSize: 18,
             //fontFamily: 'Calibri',
             fill: 'white',
@@ -62,10 +69,5 @@ export class RowRenderer {
             width: 20,
             height: 30,
         }));
-    }
-
-    //call this to redraw this.shape after this.row values were changed
-    redrawShape() {
-
     }
 }
