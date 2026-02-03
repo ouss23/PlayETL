@@ -5,13 +5,15 @@ export class SnappableShape {
     constructor({
         parent,
         shape,
-        condition = (self, other) => true,
+        topCondition = (self, other) => true,
+        bottomCondition = (self, other) => true,
         topSnapPoints = [],
         bottomSnapPoints = [],
     }) {
         this.parent = parent;
         this.shape = shape;
-        this.condition = condition;
+        this.topCondition = topCondition;
+        this.bottomCondition = bottomCondition;
         this.topSnapPoints = topSnapPoints;
         this.bottomSnapPoints = bottomSnapPoints;
 
@@ -55,7 +57,9 @@ export class SnappableShape {
                 const ownPoint = target.topSnapPoints[j];
                 for(let k = 0; k < inst.bottomSnapPoints.length; k++) {
                     const otherPoint = inst.bottomSnapPoints[k];
-                    if((Math.abs(ownPosition.x + ownPoint.x - otherPosition.x - otherPoint.x) < this.snapDistance) &&
+                    if(target.topCondition(target, inst) &&
+                        inst.bottomCondition(inst, target) &&
+                        (Math.abs(ownPosition.x + ownPoint.x - otherPosition.x - otherPoint.x) < this.snapDistance) &&
                         (Math.abs(ownPosition.y + ownPoint.y - otherPosition.y - otherPoint.y) < this.snapDistance))
                         return {
                             other: inst,
@@ -70,7 +74,9 @@ export class SnappableShape {
                 const ownPoint = target.bottomSnapPoints[j];
                 for(let k = 0; k < inst.topSnapPoints.length; k++) {
                     const otherPoint = inst.topSnapPoints[k];
-                    if((Math.abs(ownPosition.x + ownPoint.x - otherPosition.x - otherPoint.x) < this.snapDistance) &&
+                    if(target.bottomCondition(target, inst) &&
+                        inst.topCondition(inst, target) &&
+                        (Math.abs(ownPosition.x + ownPoint.x - otherPosition.x - otherPoint.x) < this.snapDistance) &&
                         (Math.abs(ownPosition.y + ownPoint.y - otherPosition.y - otherPoint.y) < this.snapDistance))
                         return {
                             other: inst,
@@ -80,8 +86,8 @@ export class SnappableShape {
                         };
                 }
             }
-
-            return null;
         }
+
+        return null;
     }
 }

@@ -237,8 +237,8 @@ const ss = new SnappableShape({
         strokeWidth: 1,
         draggable: true
     }),
-    topSnapPoints: [{x:50, y:50}],
-    bottomSnapPoints: [{x:50, y:-50}],
+    topSnapPoints: [{x:50, y:-50}],
+    bottomSnapPoints: [{x:50, y:50}],
 });
 
 const ss2 = new SnappableShape({
@@ -253,12 +253,31 @@ const ss2 = new SnappableShape({
         strokeWidth: 1,
         draggable: true
     }),
-    topSnapPoints: [{x:50, y:50}],
-    bottomSnapPoints: [{x:50, y:-50}],
+    topSnapPoints: [{x:50, y:-50}],
+    bottomSnapPoints: [{x:50, y:50}],
+    //topCondition: (self, other) => false,
+});
+
+const ss3 = new SnappableShape({
+    parent: null,
+    shape: new Konva.Rect({
+        x: 100,
+        y: 400,
+        width: 100,
+        height: 100,
+        fill: '#fbf386ff',
+        stroke: '#787878ff',
+        strokeWidth: 1,
+        draggable: true
+    }),
+    topSnapPoints: [{x:50, y:-50}],
+    bottomSnapPoints: [{x:50, y:50}],
+    bottomCondition: (self, other) => other != ss2,
 });
 
 layer.add(ss.shape);
 layer.add(ss2.shape);
+layer.add(ss3.shape);
 
 /*layer.on('dragmove', function (e) {
 
