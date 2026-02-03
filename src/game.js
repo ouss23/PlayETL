@@ -15,6 +15,7 @@ import { DataStreamTransformer } from "./model/data_stream_transformer.js";
 import { TransformerRenderer } from "./view/transformer_renderer.js";
 import { UpdateTransformer } from "./model/data_frame_transformers/update_transformer.js";
 import { Arrow } from "./view/shapes/arrow.js";
+import { SnappableShape } from "./view/snappable_shape.js";
 
 const stage = new Konva.Stage({
     container: 'container',
@@ -212,7 +213,7 @@ const simulator = new StreamSimulator({
 
 const anim = simulator.animation;
 
-anim.start();
+//anim.start();
 
 document.addEventListener("keydown", (event) => {
     if (event.shiftKey) {
@@ -223,3 +224,46 @@ document.addEventListener("keydown", (event) => {
             anim.start();
     }
 });
+
+const ss = new SnappableShape({
+    parent: null,
+    shape: new Konva.Rect({
+        x: 300,
+        y: 300,
+        width: 100,
+        height: 100,
+        fill: '#fff',
+        stroke: '#787878ff',
+        strokeWidth: 1,
+        draggable: true
+    }),
+    topSnapPoints: [{x:50, y:50}],
+    bottomSnapPoints: [{x:50, y:-50}],
+});
+
+const ss2 = new SnappableShape({
+    parent: null,
+    shape: new Konva.Rect({
+        x: 100,
+        y: 200,
+        width: 100,
+        height: 100,
+        fill: '#fb8686ff',
+        stroke: '#787878ff',
+        strokeWidth: 1,
+        draggable: true
+    }),
+    topSnapPoints: [{x:50, y:50}],
+    bottomSnapPoints: [{x:50, y:-50}],
+});
+
+layer.add(ss.shape);
+layer.add(ss2.shape);
+
+/*layer.on('dragmove', function (e) {
+
+});
+
+layer.on('dragend', function (e) {
+    
+});*/
