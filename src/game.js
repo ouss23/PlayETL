@@ -189,7 +189,7 @@ const transformerRenderer = new TransformerRenderer({
 });
 
 layer2.add(
-    transformerRenderer.shape
+    transformerRenderer.snappableShape.shape
 );
 /*transformerRenderer.shape.moveToTop();
 console.log("transformer Z : " + transformerRenderer.shape.zIndex());
@@ -225,64 +225,24 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-const ss = new SnappableShape({
-    parent: null,
-    shape: new Konva.Rect({
-        x: 300,
-        y: 300,
-        width: 100,
-        height: 100,
-        fill: '#fff',
-        stroke: '#787878ff',
-        strokeWidth: 1,
-        draggable: true
-    }),
-    topSnapPoints: [{x:50, y:-50}],
-    bottomSnapPoints: [{x:50, y:50}],
+const transformerRenderer2 = new TransformerRenderer({
+    transformer: new DataStreamTransformer(
+        null,
+        null,
+        [
+            new FilterTransformer("shape", (v => v == "star")),
+            //new FilterTransformer("color", (v => v == "green"))
+            //new UpdateTransformer("color", "orange")
+        ]
+    ),
+    x: 500,
+    y: 200,
+    width: 150,
+    height: 60,
+    displayTexts: ["⚙️Filter"],
+    displayContents: ["shape = diamond"]
 });
 
-const ss2 = new SnappableShape({
-    parent: null,
-    shape: new Konva.Rect({
-        x: 100,
-        y: 200,
-        width: 100,
-        height: 100,
-        fill: '#fb8686ff',
-        stroke: '#787878ff',
-        strokeWidth: 1,
-        draggable: true
-    }),
-    topSnapPoints: [{x:50, y:-50}],
-    bottomSnapPoints: [{x:50, y:50}],
-    //topCondition: (self, other) => false,
-});
-
-const ss3 = new SnappableShape({
-    parent: null,
-    shape: new Konva.Rect({
-        x: 100,
-        y: 400,
-        width: 100,
-        height: 100,
-        fill: '#fbf386ff',
-        stroke: '#787878ff',
-        strokeWidth: 1,
-        draggable: true
-    }),
-    topSnapPoints: [{x:50, y:-50}],
-    bottomSnapPoints: [{x:50, y:50}],
-    bottomCondition: (self, other) => other != ss2,
-});
-
-layer.add(ss.shape);
-layer.add(ss2.shape);
-layer.add(ss3.shape);
-
-/*layer.on('dragmove', function (e) {
-
-});
-
-layer.on('dragend', function (e) {
-    
-});*/
+layer2.add(
+    transformerRenderer2.snappableShape.shape
+);

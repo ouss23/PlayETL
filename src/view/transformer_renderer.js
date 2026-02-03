@@ -1,3 +1,5 @@
+import { SnappableShape } from "./snappable_shape.js";
+
 export class TransformerRenderer {
     static plugWidth = 45;
     static plugHeight = 7;
@@ -19,14 +21,34 @@ export class TransformerRenderer {
         this.width = width;
         this.height = height;
 
-        this.shape = new Konva.Group({
+        this.snappableShape = new SnappableShape({
+            parent: this,
+            shape: new Konva.Group({
+                x: x,
+                y: y,
+                draggable: true,
+            }),
+            topCondition: (self, other) =>
+                other.parent instanceof TransformerRenderer,
+            bottomCondition: (self, other) =>
+                other.parent instanceof TransformerRenderer,
+            topSnapPoints: [{
+                x: width / 2,
+                y: 0
+            }],
+            bottomSnapPoints: [{
+                x: width / 2,
+                y: height * transformer.dataFrameTransformers.length
+            }],
+        });
+        /*this.shape = new Konva.Group({
             x: x,
             y: y,
             //draggable: true,
-        });
+        });*/
     
         transformer.dataFrameTransformers.toReversed().forEach(
-            (t, i) => this.shape.add(
+            (t, i) => this.snappableShape.shape.add(
                 TransformerRenderer.drawSingleTransformer(
                     t,
                     0,
@@ -109,7 +131,7 @@ export class TransformerRenderer {
             fill: '#555',
             align: 'center',
             width: width,
-            height: height + 30,
+            height: height - 30,
         });
 
         const content = new Konva.Text({
@@ -121,7 +143,7 @@ export class TransformerRenderer {
             fill: '#555',
             align: 'center',
             width: width,
-            height: height + 30,
+            height: height - 30,
         });
 
         group.add(layout);

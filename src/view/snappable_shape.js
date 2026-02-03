@@ -32,16 +32,16 @@ export class SnappableShape {
                     })
                 }
             }
-            /*else
-                console.log("bad move target");*/
         });
 
         shape.on('dragend', function (e) {
             if(e.target == shape) {
                 //console.log("drag end");
             }
-            /*else
-                console.log("bad end target");*/
+        });
+
+        shape.on('dblclick', () => {
+            SnappableShape.destroy(ss);
         });
     }
 
@@ -89,5 +89,10 @@ export class SnappableShape {
         }
 
         return null;
+    }
+
+    static destroy(target) {
+        this.instances.filter(i => i != target);
+        target.shape.destroy();
     }
 }
