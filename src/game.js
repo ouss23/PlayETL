@@ -1,6 +1,3 @@
-//import { DataFrame } from "./model/data_frame.js";
-import { createDiamond } from "./view/shapes/diamond.js";
-import { createStar } from "./view/shapes/star.js";
 import { createGridLayer } from "./view/background.js"
 import { Row } from "./model/row.js";
 import { RowRenderer } from "./view/row_renderer.js";
@@ -17,8 +14,23 @@ import { UpdateTransformer } from "./model/data_frame_transformers/update_transf
 import { Arrow } from "./view/shapes/arrow.js";
 import { SnappableShape } from "./view/snappable_shape.js";
 
+var operationTypeSelect = document.getElementById("op-type");
+operationTypeSelect.options.length = 0;
+[
+    new Option('Filter', 'filter'),
+    new Option('Update', 'update'),
+].forEach((v, i) => {
+    operationTypeSelect.options[i] = v;
+});
+
+var operationColumnSelect = document.getElementById("op-column");
+operationColumnSelect.options.length = 0;
+RowRenderer.shapeSchema.columns.forEach((v, i) => {
+    operationColumnSelect.options[i] = new Option(v.name, v.name);
+});
+
 const stage = new Konva.Stage({
-    container: 'container',
+    container: 'konva-container',
     width: window.innerWidth,
     height: window.innerHeight,
 });

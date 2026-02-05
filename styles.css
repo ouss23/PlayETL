@@ -1,0 +1,30 @@
+#container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+}
+
+#konva-container {
+    position: absolute;
+    inset: 0;
+}
+
+#operations-control-panel {
+    position: absolute;
+    inset: 0;
+    pointer-events: auto;
+    background-color: #EBEBEB;
+    width: 200px;
+    height: 200px;
+    padding: 10px;
+    /*margin: 10px;*/
+}
+
+#operations-control-panel > * {
+    /*margin: 10px;*/
+    margin-top: 5px;
+}
+
+#operations-control-panel button {
+    pointer-events: auto;
+}
