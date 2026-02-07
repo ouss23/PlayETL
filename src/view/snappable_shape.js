@@ -92,7 +92,7 @@ export class SnappableShape {
     }
 
     static destroy(target) {
-        this.instances.filter(i => i != target);
+        this.instances = this.instances.filter(i => i != target);
         target.shape.destroy();
     }
 }

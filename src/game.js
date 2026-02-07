@@ -13,6 +13,7 @@ import { TransformerRenderer } from "./view/transformer_renderer.js";
 import { UpdateTransformer } from "./model/data_frame_transformers/update_transformer.js";
 import { Arrow } from "./view/shapes/arrow.js";
 import { SnappableShape } from "./view/snappable_shape.js";
+import { ShapeColor } from "./view/shapes/shape_colors.js";
 
 var operationTypeSelect = document.getElementById("op-type");
 operationTypeSelect.options.length = 0;
@@ -24,6 +25,39 @@ operationTypeSelect.options.length = 0;
 });
 
 var operationColumnSelect = document.getElementById("op-column");
+operationColumnSelect.options.length = 0;
+RowRenderer.shapeSchema.columns.forEach((v, i) => {
+    operationColumnSelect.options[i] = new Option(v.name, v.name);
+});
+
+operationColumnSelect.addEventListener("change", (event) => {
+    updateOperationValueOptions();
+});
+
+function updateOperationValueOptions() {
+    const value = operationColumnSelect
+        .options[operationColumnSelect.selectedIndex].value;
+    let options = [];
+    switch(value) {
+        case "shape":
+            options = ["star", "diamond"];
+            break;
+        case "color":
+            options = ShapeColor.defaultColors.keys();
+            break;
+        case "label":
+            options = ["A", "B", "C", "D", "E", "F", "G", "H"];
+            break;
+        default:
+            throw new Error("unexpected operation column " + value);
+    }
+    var operationColumnValue = document.getElementById("op-value");
+    operationColumnValue.options.length = 0;
+    options.forEach((v, i) => {
+        operationColumnValue.options[i] = new Option(v, v);
+    });
+}
+
 operationColumnSelect.options.length = 0;
 RowRenderer.shapeSchema.columns.forEach((v, i) => {
     operationColumnSelect.options[i] = new Option(v.name, v.name);
@@ -237,7 +271,7 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-const transformerRenderer2 = new TransformerRenderer({
+/*const transformerRenderer2 = new TransformerRenderer({
     transformer: new DataStreamTransformer(
         null,
         null,
@@ -257,4 +291,37 @@ const transformerRenderer2 = new TransformerRenderer({
 
 layer2.add(
     transformerRenderer2.snappableShape.shape
-);
+);*/
+
+var operationAddButton = document.getElementById("op-add");
+operationAddButton.addEventListener("click", event => {
+    const opType = operationTypeSelect
+        .options[operationTypeSelect.selectedIndex].value;
+    const opColumn = operationColumnSelect
+        .options[operationColumnSelect.selectedIndex].value;
+    var operationValueSelect = document.getElementById("op-value");
+    const opValue = operationValueSelect
+        .options[operationValueSelect.selectedIndex].value;
+    
+    const newTransformerRenderer = new TransformerRenderer({
+        transformer: new DataStreamTransformer(
+            null,
+            null,
+            [
+                opType == "filter" ?
+                    new FilterTransformer(opColumn, (v => v == opValue)) :
+                    new UpdateTransformer(opColumn, opValue),
+            ]
+        ),
+        x: 500,
+        y: 200,
+        width: 150,
+        height: 60,
+        displayTexts: [opType == "filter" ? "⚙️Filter" : "⚙️Update"],
+        displayContents: [opColumn + " = " + opValue]
+    });
+
+    layer2.add(
+        newTransformerRenderer.snappableShape.shape
+    );
+});
