@@ -1,7 +1,7 @@
 #container {
     position: relative;
-    width: 800px;
-    height: 600px;
+    width: 100%;
+    height: 100%;
 }
 
 #konva-container {
@@ -11,13 +11,15 @@
 
 #operations-control-panel {
     position: absolute;
-    inset: 0;
+    /*inset: 0;*/
     pointer-events: auto;
     background-color: #EBEBEB;
     width: 200px;
     height: 200px;
     padding: 10px;
     /*margin: 10px;*/
+    top: 0px;
+    left: 0px;
 }
 
 #operations-control-panel > * {
@@ -26,5 +28,27 @@
 }
 
 #operations-control-panel button {
+    pointer-events: auto;
+}
+
+#status-panel {
+    position: absolute;
+    /*inset: 0;*/
+    pointer-events: auto;
+    background-color: #EBEBEB;
+    width: 200px;
+    height: 200px;
+    padding: 10px;
+    /*margin: 10px;*/
+    top: 0px;
+    right: 0px;
+}
+
+#status-panel > * {
+    /*margin: 10px;*/
+    margin-top: 5px;
+}
+
+#status-panel button {
     pointer-events: auto;
 }

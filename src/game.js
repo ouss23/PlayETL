@@ -271,28 +271,6 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
-/*const transformerRenderer2 = new TransformerRenderer({
-    transformer: new DataStreamTransformer(
-        null,
-        null,
-        [
-            new FilterTransformer("shape", (v => v == "star")),
-            //new FilterTransformer("color", (v => v == "green"))
-            //new UpdateTransformer("color", "orange")
-        ]
-    ),
-    x: 500,
-    y: 200,
-    width: 150,
-    height: 60,
-    displayTexts: ["⚙️Filter"],
-    displayContents: ["shape = diamond"]
-});
-
-layer2.add(
-    transformerRenderer2.snappableShape.shape
-);*/
-
 var operationAddButton = document.getElementById("op-add");
 operationAddButton.addEventListener("click", event => {
     const opType = operationTypeSelect
