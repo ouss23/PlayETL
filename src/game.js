@@ -14,10 +14,13 @@ import { UpdateTransformer } from "./model/data_frame_transformers/update_transf
 import { Arrow } from "./view/shapes/arrow.js";
 import { SnappableShape } from "./view/snappable_shape.js";
 import { ShapeColor } from "./view/shapes/shape_colors.js";
+import { DataIORenderer, IOOperationType } from "./view/data_io_renderer.js";
 
 var operationTypeSelect = document.getElementById("op-type");
 operationTypeSelect.options.length = 0;
 [
+    new Option('Read', 'read'),
+    new Option('Write', 'write'),
     new Option('Filter', 'filter'),
     new Option('Update', 'update'),
 ].forEach((v, i) => {
@@ -281,25 +284,46 @@ operationAddButton.addEventListener("click", event => {
     const opValue = operationValueSelect
         .options[operationValueSelect.selectedIndex].value;
     
-    const newTransformerRenderer = new TransformerRenderer({
-        transformer: new DataStreamTransformer(
-            null,
-            null,
-            [
-                opType == "filter" ?
-                    new FilterTransformer(opColumn, (v => v == opValue)) :
-                    new UpdateTransformer(opColumn, opValue),
-            ]
-        ),
-        x: 500,
-        y: 200,
-        width: 150,
-        height: 60,
-        displayTexts: [opType == "filter" ? "⚙️Filter" : "⚙️Update"],
-        displayContents: [opColumn + " = " + opValue]
-    });
+    let newRenderer = null;
+    if((opType == "read") || (opType == "write")) {
+        newRenderer = new DataIORenderer({
+            dataFrame: null,
+            operationType: opType == "read" ?
+                IOOperationType.READ : IOOperationType.WRITE,
+            x: 500,
+            y: 200,
+            width: 150,
+            height: 60,
+            displayText: opType == "read" ? "⚙️Read" : "⚙️Write",
+            displayContent: "dataframe",
+        });
+    }
+    else {
+        newRenderer = new TransformerRenderer({
+            transformer: new DataStreamTransformer(
+                null,
+                null,
+                [
+                    opType == "filter" ?
+                        new FilterTransformer(opColumn, (v => v == opValue)) :
+                        new UpdateTransformer(opColumn, opValue),
+                ]
+            ),
+            x: 500,
+            y: 200,
+            width: 150,
+            height: 60,
+            displayTexts: [opType == "filter" ? "⚙️Filter" : "⚙️Update"],
+            displayContents: [opColumn + " = " + opValue]
+        });
+    }
 
     layer2.add(
-        newTransformerRenderer.snappableShape.shape
+        newRenderer.snappableShape.shape
     );
+});
+
+var validateButton = document.getElementById("status-validate");
+validateButton.addEventListener("click", event => {
+    console.log(SnappableShape.buildConnections());
 });

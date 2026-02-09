@@ -1,3 +1,4 @@
+import { DataIORenderer } from "./data_io_renderer.js";
 import { SnappableShape } from "./snappable_shape.js";
 
 export class TransformerRenderer {
@@ -29,9 +30,11 @@ export class TransformerRenderer {
                 draggable: true,
             }),
             topCondition: (self, other) =>
-                other.parent instanceof TransformerRenderer,
+                (other.parent instanceof TransformerRenderer) ||
+                (other.parent instanceof DataIORenderer),
             bottomCondition: (self, other) =>
-                other.parent instanceof TransformerRenderer,
+                other.parent instanceof TransformerRenderer ||
+                (other.parent instanceof DataIORenderer),
             topSnapPoints: [{
                 x: width / 2,
                 y: 0
@@ -41,11 +44,6 @@ export class TransformerRenderer {
                 y: height * transformer.dataFrameTransformers.length
             }],
         });
-        /*this.shape = new Konva.Group({
-            x: x,
-            y: y,
-            //draggable: true,
-        });*/
     
         transformer.dataFrameTransformers.toReversed().forEach(
             (t, i) => this.snappableShape.shape.add(
