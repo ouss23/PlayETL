@@ -1,3 +1,9 @@
+import { TransformerRenderer } from "./transformer_renderer.js";
+import { DataIORenderer } from "./data_io_renderer.js";
+import { OperationsDAG } from "../model/operations_dag.js";
+import { DataStreamTransformer } from "../model/data_stream_transformer.js";
+import { DataReader } from "../model/data_reader.js";
+
 export class SnappableShape {
     static snapDistance = 10;
     static instances = [];
@@ -201,5 +207,101 @@ export class SnappableShape {
             };
         
         return status;
+    }
+
+    static buildDAGs() {
+        const marked = [];
+        const dags = [];
+        this.instances.forEach(e => {
+            if(marked.findIndex(me => me == e) != -1)
+                return;
+
+            const dag = new OperationsDAG();
+
+            let sink = e;
+            while((sink.topConnections != null) && (sink.topConnections.length > 0)) {
+                if(sink.topConnections.length > 1)
+                    throw new Error("Operation with multiple upstreams found");
+
+                sink = sink.topConnections[0];
+            }
+
+            let previous = null;
+            let dst = null;
+            while(sink != null) {
+                if(sink.parent instanceof DataIORenderer) {
+                    if((previous == null) && (dst == null)) {
+                        marked.push(sink);
+                        previous = sink;
+                        sink = sink.bottomConnections[0];
+                        continue;
+                    }
+                    else if(previous != null) {
+                        if(dst != null) {
+                            dst.downstream = new DataReader(
+                                sink.parent.dataFrame,
+                                dst,
+                                1/2,
+                            );
+                            dag.addDownStream(dst.downstream);
+                        }
+                        else
+                            dag.addDownStream(
+                                new DataReader(
+                                    sink.parent.dataFrame,
+                                    previous.parent.dataFrame,
+                                    1/2,
+                                )
+                            );
+                        if(sink.bottomConnections.length > 0) {
+                            console.log(sink);
+                            throw new Error("Read operation must be" +
+                                " the first operation in the chain");
+                        }
+
+                        marked.push(sink);
+                        break;
+                    }
+                    else
+                        throw new Error("Bad operations chain");
+                }
+                else if(sink.parent instanceof TransformerRenderer) {
+                    if(sink.parent.transformer.dataFrameTransformers.length > 1)
+                        throw new Error("Multiple transformers stacked");
+
+                    if(dst == null) {
+                        if(!(previous.parent instanceof DataIORenderer))
+                            throw new Error("Last operation must be an IO");
+
+                        dst = new DataStreamTransformer(
+                            null,
+                            previous.parent.dataFrame,
+                            []
+                        );
+
+                        dag.addDownStream(dst);
+                    }
+                    
+                    dst.dataFrameTransformers.unshift(
+                        sink.parent.transformer.dataFrameTransformers[0]
+                    );
+                }
+                else
+                    throw new Error("Bad connection type found " + sink);
+
+                marked.push(sink);
+                previous = sink;
+                sink = sink.bottomConnections[0];
+            }
+
+            if(dag.isValid())
+                dags.push(dag);
+            else {
+                console.log(dag);
+                throw new Error("Invalid DAG ");
+            }
+        });
+
+        return dags
     }
 }

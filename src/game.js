@@ -61,6 +61,8 @@ function updateOperationValueOptions() {
     });
 }
 
+updateOperationValueOptions();
+
 operationColumnSelect.options.length = 0;
 RowRenderer.shapeSchema.columns.forEach((v, i) => {
     operationColumnSelect.options[i] = new Option(v.name, v.name);
@@ -274,6 +276,9 @@ document.addEventListener("keydown", (event) => {
     }
 });
 
+const sourceDF = new DataFrame("source_df", RowRenderer.shapeSchema);
+const newDF = new DataFrame("new_df", RowRenderer.shapeSchema);
+
 var operationAddButton = document.getElementById("op-add");
 operationAddButton.addEventListener("click", event => {
     const opType = operationTypeSelect
@@ -287,15 +292,15 @@ operationAddButton.addEventListener("click", event => {
     let newRenderer = null;
     if((opType == "read") || (opType == "write")) {
         newRenderer = new DataIORenderer({
-            dataFrame: null,
+            dataFrame: opType == "read" ? sourceDF : newDF,
             operationType: opType == "read" ?
                 IOOperationType.READ : IOOperationType.WRITE,
             x: 500,
             y: 200,
             width: 150,
             height: 60,
-            displayText: opType == "read" ? "⚙️Read" : "⚙️Write",
-            displayContent: "dataframe",
+            displayText: opType == "read" ? "📤​Read" : "📥​​Write",
+            displayContent: opType == "read" ? "source_df" : "new_df",
         });
     }
     else {
@@ -313,7 +318,7 @@ operationAddButton.addEventListener("click", event => {
             y: 200,
             width: 150,
             height: 60,
-            displayTexts: [opType == "filter" ? "⚙️Filter" : "⚙️Update"],
+            displayTexts: [opType == "filter" ? "🔍Filter" : "✏️​Update"],
             displayContents: [opColumn + " = " + opValue]
         });
     }
@@ -325,5 +330,11 @@ operationAddButton.addEventListener("click", event => {
 
 var validateButton = document.getElementById("status-validate");
 validateButton.addEventListener("click", event => {
-    console.log(SnappableShape.buildConnections());
+    const jobValidation = SnappableShape.buildConnections();
+    document.getElementById('status-div').innerHTML = 'Job status : ' +
+        (jobValidation.status == "success" ? "🟢" : "🔴​");
+    if(jobValidation.status != "success")
+        console.log("Job validation failed : " + jobValidation.reason);
+    else
+        console.log(SnappableShape.buildDAGs());
 });
