@@ -15,6 +15,7 @@ import { Arrow } from "./view/shapes/arrow.js";
 import { SnappableShape } from "./view/snappable_shape.js";
 import { ShapeColor } from "./view/shapes/shape_colors.js";
 import { DataIORenderer, IOOperationType } from "./view/data_io_renderer.js";
+import { Menu, MenusManager } from "./view/menus_manager.js";
 
 var operationTypeSelect = document.getElementById("op-type");
 operationTypeSelect.options.length = 0;
@@ -69,7 +70,7 @@ RowRenderer.shapeSchema.columns.forEach((v, i) => {
 });
 
 const stage = new Konva.Stage({
-    container: 'konva-container',
+    container: 'konva-edit-container',
     width: window.innerWidth,
     height: window.innerHeight,
 });
@@ -91,14 +92,14 @@ const dataframe = new DataFrame(
         new Row(["diamond", "green", "I"], RowRenderer.shapeSchema),
     ]
 );
-const dataframeRenderer = new DataFrameRenderer({
+/*const dataframeRenderer = new DataFrameRenderer({
     dataframe: dataframe,
     x: 500,
     y: 400,
     elements_offset: 50,
     max_height: 2,
     padding: 5,
-});
+});*/
 
 const dataframe2 = new DataFrame(
     "new_df",
@@ -107,23 +108,23 @@ const dataframe2 = new DataFrame(
         //new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
     ]
 );
-const dataframeRenderer2 = new DataFrameRenderer({
+/*const dataframeRenderer2 = new DataFrameRenderer({
     dataframe: dataframe2,
     x: 500,
     y: 50,
     elements_offset: 50,
     max_height: 2,
     padding: 5,
-});
+});*/
 
-layer.add(
+/*layer.add(
     dataframeRenderer.shape
 );
 layer.add(
     dataframeRenderer2.shape
-);
+);*/
 
-const l = createGridLayer({width:1500, height:1500, cellSize:50});
+const l = createGridLayer({width:1500, height:1500, cellSize:40});
 stage.add(l)
 stage.add(layer);
 const layer2 = new Konva.Layer();
@@ -136,7 +137,7 @@ layer2.draw();
 
 //console.log("main")
 
-const stream = new DataStream(
+/*const stream = new DataStream(
     null,
     null,
     1/2,
@@ -242,10 +243,6 @@ const transformerRenderer = new TransformerRenderer({
 layer2.add(
     transformerRenderer.snappableShape.shape
 );
-/*transformerRenderer.shape.moveToTop();
-console.log("transformer Z : " + transformerRenderer.shape.zIndex());
-transformerRenderer.shape.zIndex(50);
-console.log("transformer Z : " + transformerRenderer.shape.zIndex());*/
 
 const dataReader = new DataReader(
     dataframe,
@@ -253,9 +250,9 @@ const dataReader = new DataReader(
     1/2,
 );
 
-stream.downstream = dataReader;
+stream.downstream = dataReader;*/
 
-const simulator = new StreamSimulator({
+/*const simulator = new StreamSimulator({
     data_frame_renderers: [dataframeRenderer, dataframeRenderer2],
     data_stream_renderers: [streamRenderer, stream2Renderer, stream3Renderer],
     dataReaders: [dataReader],
@@ -274,7 +271,7 @@ document.addEventListener("keydown", (event) => {
         else
             anim.start();
     }
-});
+});*/
 
 const sourceDF = new DataFrame("source_df", RowRenderer.shapeSchema);
 const newDF = new DataFrame("new_df", RowRenderer.shapeSchema);
@@ -335,6 +332,69 @@ validateButton.addEventListener("click", event => {
         (jobValidation.status == "success" ? "🟢" : "🔴​");
     if(jobValidation.status != "success")
         console.log("Job validation failed : " + jobValidation.reason);
-    else
-        console.log(SnappableShape.buildDAGs());
+    else {
+        const dags = SnappableShape.buildDAGs();
+        document.getElementById('dags-count').innerHTML = 'DAGs count : ' +
+            dags.length;
+        console.log(dags);
+    }
+});
+
+const simulationStage = new Konva.Stage({
+    container: 'konva-simulation-container',
+    width: window.innerWidth,
+    height: window.innerHeight,
+});
+const simulationGridLayer = createGridLayer({width:1500, height:1500, cellSize:40});
+const simulationLayer = new Konva.Layer();
+simulationStage.add(simulationGridLayer);
+simulationStage.add(simulationLayer);
+simulationGridLayer.draw();
+simulationLayer.draw();
+
+MenusManager.init(stage, simulationStage);
+
+function drawDAG(dag, layer, verticalSpacing = 100) {
+    if(dag.operations.length == 0)
+        return;
+
+    const reader = dag.getDataReader();
+    let writeToDF = dag.getWriteToDF();
+    let lastTransformer = dag.getLastTransformer();
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
+    const sourceDFRenderer = new DataFrameRenderer({
+        dataframe: reader.sourceDF,
+        x: centerX,
+        y: centerY + verticalSpacing,
+        elements_offset: 50,
+        max_height: 2,
+        padding: 5,
+    });
+
+    layer.add(sourceDFRenderer.shape);
+}
+
+var toSimulationButton = document.getElementById("simulation-view");
+toSimulationButton.addEventListener("click", event => {
+    MenusManager.setMenu(Menu.Simulation);
+    simulationLayer.destroyChildren();
+    const jobValidation = SnappableShape.buildConnections();
+    if(jobValidation.status != "success")
+        console.log("DAG rendering skipped because job validation failed");
+    else {
+        const dags = SnappableShape.buildDAGs();
+        if(dags.length == 0)
+            console.log("No dag to render");
+        else
+            drawDAG(dags[0], simulationLayer);
+    }
+});
+
+//test only
+var toEditButton = document.getElementById("simulation-restart");
+toEditButton.addEventListener("click", event => {
+    MenusManager.setMenu(Menu.Edit);
 });

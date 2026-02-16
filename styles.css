@@ -52,3 +52,25 @@
 #status-panel button {
     pointer-events: auto;
 }
+
+#simulation-playback-panel {
+    position: absolute;
+    /*inset: 0;*/
+    pointer-events: auto;
+    background-color: #EBEBEB;
+    width: 200px;
+    height: 30px;
+    padding: 10px;
+    /*margin: 10px;*/
+    top: 0px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    display: flex;
+    gap: 8px;
+}
+
+#simulation-playback-panel > * {
+    /*left: 50%;*/
+    flex: 1;
+    /*margin: 3px;*/
+}

@@ -2,7 +2,7 @@ import { Schema } from "./schema.js";
 import { Row } from "./row.js";
 
 export class DataFrame {
-  constructor(name, schema, rows) {
+  constructor(name, schema, rows = []) {
     this.name = name;
     this.schema = schema;
     this.rows = rows;

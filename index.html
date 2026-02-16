@@ -14,38 +14,49 @@
 <body>
 
     <div id="container">
-        <div id="konva-container"></div>
+        <div id="konva-edit-container"></div>
+        <div id="konva-simulation-container"></div>
 
-        <div id="operations-control-panel">
-            <div class="panel">Add operation</div>
-            <select id="op-type">
-                <option value="">--Please choose an option--</option>
-                <option value="filter">Filter</option>
-                <option value="update">Update</option>
-            </select>
-            <div>
-                <span>Column:</span>
-                <select id="op-column" style="display:inline-block;">
-                    <option>A</option>
-                    <option>B</option>
+        <div id="edit-menu" class="view">
+            <div id="operations-control-panel">
+                <div class="panel">Add operation</div>
+                <select id="op-type">
+                    <option value="">--Please choose an option--</option>
+                    <option value="filter">Filter</option>
+                    <option value="update">Update</option>
                 </select>
-            </div>
-            <div>
-                <span>Value:</span>
-                <select id="op-value" style="display:inline-block;">
-                    <option>A</option>
-                    <option>B</option>
-                </select>
+                <div>
+                    <span>Column:</span>
+                    <select id="op-column" style="display:inline-block;">
+                        <option>A</option>
+                        <option>B</option>
+                    </select>
+                </div>
+                <div>
+                    <span>Value:</span>
+                    <select id="op-value" style="display:inline-block;">
+                        <option>A</option>
+                        <option>B</option>
+                    </select>
+                </div>
+
+                <button id="op-add">Add</button>
             </div>
 
-            <button id="op-add">Add</button>
+            <div id="status-panel">
+                <button id="status-validate">Validate job</button>
+                <div class="panel" id="status-div">Job status : ⚪​</div>
+                <div class="panel" id="dags-count">DAGs count : 0</div>
+                <button id="simulation-view">Simulation view >></button>
+            </div>
         </div>
 
-        <div id="status-panel">
-            <button id="status-validate">Validate job</button>
-            <div class="panel" id="status-div">Job status : ⚪​</div>
-            <div class="panel">Stages count : -</div>
-            <button id="simulation-view">Simulation view >></button>
+        <div id="simulation-menu" class="view hidden">
+            <div id="simulation-playback-panel">
+                <button id="simulation-play">Play</button>
+                <button id="simulation-pause">Pause</button>
+                <button id="simulation-restart">Restart</button>
+            </div>
         </div>
     </div>
     

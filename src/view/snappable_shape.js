@@ -1,5 +1,5 @@
 import { TransformerRenderer } from "./transformer_renderer.js";
-import { DataIORenderer } from "./data_io_renderer.js";
+import { DataIORenderer, IOOperationType } from "./data_io_renderer.js";
 import { OperationsDAG } from "../model/operations_dag.js";
 import { DataStreamTransformer } from "../model/data_stream_transformer.js";
 import { DataReader } from "../model/data_reader.js";
@@ -230,13 +230,22 @@ export class SnappableShape {
             let dst = null;
             while(sink != null) {
                 if(sink.parent instanceof DataIORenderer) {
+                    //write
                     if((previous == null) && (dst == null)) {
+                        if(sink.parent.operationType != IOOperationType.WRITE)
+                            throw new Error("Last block must be a WRITE operation");
+
                         marked.push(sink);
                         previous = sink;
                         sink = sink.bottomConnections[0];
                         continue;
                     }
+                    //read
                     else if(previous != null) {
+                        if(sink.parent.operationType == IOOperationType.WRITE)
+                            throw new Error("WRITE operations can only be put " +
+                                "last");
+                                
                         if(dst != null) {
                             dst.downstream = new DataReader(
                                 sink.parent.dataFrame,
