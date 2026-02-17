@@ -273,7 +273,7 @@ document.addEventListener("keydown", (event) => {
     }
 });*/
 
-const sourceDF = new DataFrame("source_df", RowRenderer.shapeSchema);
+const sourceDF = dataframe;//new DataFrame("source_df", RowRenderer.shapeSchema);
 const newDF = new DataFrame("new_df", RowRenderer.shapeSchema);
 
 var operationAddButton = document.getElementById("op-add");
@@ -292,8 +292,8 @@ operationAddButton.addEventListener("click", event => {
             dataFrame: opType == "read" ? sourceDF : newDF,
             operationType: opType == "read" ?
                 IOOperationType.READ : IOOperationType.WRITE,
-            x: 500,
-            y: 200,
+            x: (window.innerWidth - 150) / 2,
+            y: (window.innerHeight - 60) / 2,
             width: 150,
             height: 60,
             displayText: opType == "read" ? "📤​Read" : "📥​​Write",
@@ -307,16 +307,16 @@ operationAddButton.addEventListener("click", event => {
                 null,
                 [
                     opType == "filter" ?
-                        new FilterTransformer(opColumn, (v => v == opValue)) :
+                        new FilterTransformer(opColumn, opValue/*(v => v == opValue)*/) :
                         new UpdateTransformer(opColumn, opValue),
                 ]
             ),
-            x: 500,
-            y: 200,
+            x: (window.innerWidth - 150) / 2,
+            y: (window.innerHeight - 60) / 2,
             width: 150,
             height: 60,
-            displayTexts: [opType == "filter" ? "🔍Filter" : "✏️​Update"],
-            displayContents: [opColumn + " = " + opValue]
+            //displayTexts: [opType == "filter" ? "🔍Filter" : "✏️​Update"],
+            //displayContents: [opColumn + " = " + opValue]
         });
     }
 
@@ -354,7 +354,7 @@ simulationLayer.draw();
 
 MenusManager.init(stage, simulationStage);
 
-function drawDAG(dag, layer, verticalSpacing = 100) {
+function drawDAG(dag, layer, verticalSpacing = 60) {
     if(dag.operations.length == 0)
         return;
 
@@ -364,17 +364,52 @@ function drawDAG(dag, layer, verticalSpacing = 100) {
 
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
+    const columnsCount = 4;
+    const padding = 5;
+    const elementsOffset = 50;
+    const width = padding * 2 + columnsCount * elementsOffset;
+    const transformerBlockHeight = 60;
+    const lastTransformerHeight = (lastTransformer == null) ?
+        0 : (lastTransformer.dataFrameTransformers.length * transformerBlockHeight);
 
     const sourceDFRenderer = new DataFrameRenderer({
         dataframe: reader.sourceDF,
-        x: centerX,
-        y: centerY + verticalSpacing,
-        elements_offset: 50,
+        x: centerX - width / 2,
+        y: centerY + ((lastTransformer == null) ?
+            (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2)),
+        elements_offset: elementsOffset,
         max_height: 2,
-        padding: 5,
+        padding: padding,
+        columnsDisplayCount: columnsCount,
     });
 
+    const newDFRenderer = new DataFrameRenderer({
+        dataframe: writeToDF,
+        x: centerX - width / 2,
+        y: centerY - ((lastTransformer == null) ?
+            (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2))
+            - (padding * 2 + elementsOffset),
+        elements_offset: elementsOffset,
+        max_height: 2,
+        padding: padding,
+        columnsDisplayCount: columnsCount,
+    });
+
+    if(lastTransformer != null) {
+        const transformerRenderer = new TransformerRenderer({
+            transformer: lastTransformer,
+            x: (window.innerWidth - 150) / 2,
+            y: (window.innerHeight - lastTransformerHeight) / 2,
+            width: 150,
+            height: 60,
+            snappable: false,
+        });
+
+        layer.add(transformerRenderer.staticShape);
+    }
+
     layer.add(sourceDFRenderer.shape);
+    layer.add(newDFRenderer.shape);
 }
 
 var toSimulationButton = document.getElementById("simulation-view");
