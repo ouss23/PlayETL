@@ -69,13 +69,13 @@ RowRenderer.shapeSchema.columns.forEach((v, i) => {
     operationColumnSelect.options[i] = new Option(v.name, v.name);
 });
 
-const stage = new Konva.Stage({
+/*const stage = new Konva.Stage({
     container: 'konva-edit-container',
     width: window.innerWidth,
     height: window.innerHeight,
 });
 
-const layer = new Konva.Layer();
+const layer = new Konva.Layer();*/
 
 const dataframe = new DataFrame(
     "source_df",
@@ -92,14 +92,6 @@ const dataframe = new DataFrame(
         new Row(["diamond", "green", "I"], RowRenderer.shapeSchema),
     ]
 );
-/*const dataframeRenderer = new DataFrameRenderer({
-    dataframe: dataframe,
-    x: 500,
-    y: 400,
-    elements_offset: 50,
-    max_height: 2,
-    padding: 5,
-});*/
 
 const dataframe2 = new DataFrame(
     "new_df",
@@ -108,23 +100,8 @@ const dataframe2 = new DataFrame(
         //new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
     ]
 );
-/*const dataframeRenderer2 = new DataFrameRenderer({
-    dataframe: dataframe2,
-    x: 500,
-    y: 50,
-    elements_offset: 50,
-    max_height: 2,
-    padding: 5,
-});*/
 
-/*layer.add(
-    dataframeRenderer.shape
-);
-layer.add(
-    dataframeRenderer2.shape
-);*/
-
-const l = createGridLayer({width:1500, height:1500, cellSize:40});
+/*const l = createGridLayer({width:1500, height:1500, cellSize:40});
 stage.add(l)
 stage.add(layer);
 const layer2 = new Konva.Layer();
@@ -133,7 +110,7 @@ l.draw();
 //stage.add(bgLayer);
 //bgLayer.draw()
 layer.draw();
-layer2.draw();
+layer2.draw();*/
 
 //console.log("main")
 
@@ -276,6 +253,18 @@ document.addEventListener("keydown", (event) => {
 const sourceDF = dataframe;//new DataFrame("source_df", RowRenderer.shapeSchema);
 const newDF = new DataFrame("new_df", RowRenderer.shapeSchema);
 
+const editStage = new Konva.Stage({
+    container: 'konva-edit-container',
+    width: window.innerWidth,
+    height: window.innerHeight,
+});
+const editGridLayer = createGridLayer({width:1500, height:1500, cellSize:40});
+const editLayer = new Konva.Layer();
+editStage.add(editGridLayer);
+editStage.add(editLayer);
+editGridLayer.draw();
+editLayer.draw();
+
 var operationAddButton = document.getElementById("op-add");
 operationAddButton.addEventListener("click", event => {
     const opType = operationTypeSelect
@@ -318,20 +307,23 @@ operationAddButton.addEventListener("click", event => {
         });
     }
 
-    layer2.add(
+    editLayer.add(
         newRenderer.snappableShape.shape
     );
 });
 
+let dags = [];
 var validateButton = document.getElementById("status-validate");
 validateButton.addEventListener("click", event => {
     const jobValidation = SnappableShape.buildConnections();
     document.getElementById('status-div').innerHTML = 'Job status : ' +
         (jobValidation.status == "success" ? "🟢" : "🔴​");
-    if(jobValidation.status != "success")
+    if(jobValidation.status != "success") {
         console.log("Job validation failed : " + jobValidation.reason);
+        dags = [];
+    }
     else {
-        const dags = SnappableShape.buildDAGs();
+        dags = SnappableShape.buildDAGs();
         document.getElementById('dags-count').innerHTML = 'DAGs count : ' +
             dags.length;
         console.log(dags);
@@ -344,88 +336,89 @@ const simulationStage = new Konva.Stage({
     height: window.innerHeight,
 });
 const simulationGridLayer = createGridLayer({width:1500, height:1500, cellSize:40});
-const simulationLayer = new Konva.Layer();
+const simulationBaseLayer = new Konva.Layer();
+const simulationTransformersLayer = new Konva.Layer();
 simulationStage.add(simulationGridLayer);
-simulationStage.add(simulationLayer);
+simulationStage.add(simulationBaseLayer);
+simulationStage.add(simulationTransformersLayer);
 simulationGridLayer.draw();
-simulationLayer.draw();
+simulationBaseLayer.draw();
+simulationTransformersLayer.draw();
 
-MenusManager.init(stage, simulationStage);
+MenusManager.init(editStage, simulationStage);
 
-function drawDAG(dag, layer, verticalSpacing = 60) {
-    if(dag.operations.length == 0)
-        return;
-
-    const reader = dag.getDataReader();
-    let writeToDF = dag.getWriteToDF();
-    let lastTransformer = dag.getLastTransformer();
-
-    const centerX = window.innerWidth / 2;
-    const centerY = window.innerHeight / 2;
-    const columnsCount = 4;
-    const padding = 5;
-    const elementsOffset = 50;
-    const width = padding * 2 + columnsCount * elementsOffset;
-    const transformerBlockHeight = 60;
-    const lastTransformerHeight = (lastTransformer == null) ?
-        0 : (lastTransformer.dataFrameTransformers.length * transformerBlockHeight);
-
-    const sourceDFRenderer = new DataFrameRenderer({
-        dataframe: reader.sourceDF,
-        x: centerX - width / 2,
-        y: centerY + ((lastTransformer == null) ?
-            (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2)),
-        elements_offset: elementsOffset,
-        max_height: 2,
-        padding: padding,
-        columnsDisplayCount: columnsCount,
-    });
-
-    const newDFRenderer = new DataFrameRenderer({
-        dataframe: writeToDF,
-        x: centerX - width / 2,
-        y: centerY - ((lastTransformer == null) ?
-            (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2))
-            - (padding * 2 + elementsOffset),
-        elements_offset: elementsOffset,
-        max_height: 2,
-        padding: padding,
-        columnsDisplayCount: columnsCount,
-    });
-
-    if(lastTransformer != null) {
-        const transformerRenderer = new TransformerRenderer({
-            transformer: lastTransformer,
-            x: (window.innerWidth - 150) / 2,
-            y: (window.innerHeight - lastTransformerHeight) / 2,
-            width: 150,
-            height: 60,
-            snappable: false,
-        });
-
-        layer.add(transformerRenderer.staticShape);
-    }
-
-    layer.add(sourceDFRenderer.shape);
-    layer.add(newDFRenderer.shape);
+function refreshSimulationPlaybackButtons() {
+    document.getElementById("simulation-play").disabled =
+        (StreamSimulator.instance == null) ||
+        (StreamSimulator.instance.animation.isRunning());
+    document.getElementById("simulation-pause").disabled =
+        (StreamSimulator.instance == null) ||
+        (!StreamSimulator.instance.animation.isRunning());
+    document.getElementById("simulation-restart").disabled =
+        (StreamSimulator.instance == null);// ||
+        //(StreamSimulator.instance.animationTime <= 0);
 }
 
 var toSimulationButton = document.getElementById("simulation-view");
 toSimulationButton.addEventListener("click", event => {
     MenusManager.setMenu(Menu.Simulation);
-    simulationLayer.destroyChildren();
+    simulationBaseLayer.destroyChildren();
+    simulationTransformersLayer.destroyChildren();
     const jobValidation = SnappableShape.buildConnections();
-    if(jobValidation.status != "success")
+    if(jobValidation.status != "success") {
         console.log("DAG rendering skipped because job validation failed");
+        dags = [];
+    }
     else {
-        const dags = SnappableShape.buildDAGs();
+        dags = SnappableShape.buildDAGs();
         if(dags.length == 0)
             console.log("No dag to render");
         else {
             //drawDAG(dags[0], simulationLayer);
-            const simulator = StreamSimulator.fromDAG(dags[0], simulationLayer);
+            const simulator = StreamSimulator.fromDAG(
+                dags[0],
+                simulationBaseLayer,
+                simulationTransformersLayer,
+            );
         }
     }
+    refreshSimulationPlaybackButtons();
+});
+
+document.getElementById("simulation-play").addEventListener("click", event => {
+    if(StreamSimulator.instance == null)
+        throw new Error("No StreamSimulator instance to play");
+
+    if(!StreamSimulator.instance.animation.isRunning())
+        StreamSimulator.instance.animation.start();
+
+    refreshSimulationPlaybackButtons();
+});
+
+document.getElementById("simulation-pause").addEventListener("click", event => {
+    if(StreamSimulator.instance == null)
+        throw new Error("No StreamSimulator instance to pause");
+
+    if(StreamSimulator.instance.animation.isRunning())
+        StreamSimulator.instance.animation.stop();
+
+    refreshSimulationPlaybackButtons();
+});
+
+document.getElementById("simulation-restart").addEventListener("click", event => {
+    if(dags.length == 0)
+        console.log("No dag to render");
+    else {
+        simulationBaseLayer.destroyChildren();
+        simulationTransformersLayer.destroyChildren();
+        const simulator = StreamSimulator.fromDAG(
+            dags[0],
+            simulationBaseLayer,
+            simulationTransformersLayer,
+        );
+    }
+
+    refreshSimulationPlaybackButtons();
 });
 
 document.addEventListener("keydown", (event) => {
@@ -444,5 +437,6 @@ document.addEventListener("keydown", (event) => {
 //test only
 var toEditButton = document.getElementById("edit-view");
 toEditButton.addEventListener("click", event => {
+    StreamSimulator.clearAll();
     MenusManager.setMenu(Menu.Edit);
 });

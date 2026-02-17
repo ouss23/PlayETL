@@ -5,6 +5,7 @@ import { DataStreamTransformer } from "./model/data_stream_transformer.js";
 import { DataStreamRenderer } from "./view/data_stream_renderer.js";
 import { RowRenderer } from "./view/row_renderer.js";
 import { DataFrameRenderer } from "./view/data_frame_renderer.js";
+import { TransformerRenderer } from "./view/transformer_renderer.js";
 
 export class StreamSimulator {
     constructor({
@@ -182,7 +183,7 @@ export class StreamSimulator {
         this.instance = null;
     }
 
-    static fromDAG(dag, layer, verticalSpacing = 60) {
+    static fromDAG(dag, baseLayer, transformersLayer, verticalSpacing = 60) {
         this.clearAll();
 
         if(dag.operations.length == 0)
@@ -229,6 +230,22 @@ export class StreamSimulator {
         });
 
         const streamRenderers = [];
+        const stream1 = new DataStream(
+            reader,
+            null,
+            1 / 2,
+        );
+        reader.upstream = stream1;
+
+        streamRenderers.push(
+            new DataStreamRenderer({
+                data_stream: stream1,
+                start_x: sourceDFRenderer.firstRowPosition().x,
+                start_y: sourceDFRenderer.firstRowPosition().y,
+                end_x: sourceDFRenderer.topPoint().x,
+                end_y: sourceDFRenderer.topPoint().y,
+            })
+        );
     
         if(lastTransformer != null) {
             const transformerRenderer = new TransformerRenderer({
@@ -240,19 +257,64 @@ export class StreamSimulator {
                 snappable: false,
             });
     
-            layer.add(transformerRenderer.staticShape);
-        }
-        else {
-            const stream = new DataStream(
-                reader,
+            transformersLayer.add(transformerRenderer.staticShape);
+
+            const transformerDownstreamPoint = {
+                x: transformerRenderer.x + transformerRenderer.width / 2,
+                y: transformerRenderer.y - TransformerRenderer.plugHeight +
+                    lastTransformer.dataFrameTransformers.length *
+                        transformerBlockHeight - 20,
+            };
+            const transformerUpstreamPoint = {
+                x: transformerDownstreamPoint.x,
+                y: transformerRenderer.y - TransformerRenderer.plugHeight + 20,
+            };
+
+            const stream2 = new DataStream(
+                stream1,
+                lastTransformer,
+                1 / 2,
+            );
+            stream1.upstream = stream2;
+            lastTransformer.downstream = stream2;
+
+            const stream3 = new DataStream(
+                lastTransformer,
                 writeToDF,
                 1 / 2,
             );
-            reader.upstream = stream;
+            lastTransformer.upstream = stream3;
 
             streamRenderers.push(
                 new DataStreamRenderer({
-                    data_stream: stream,
+                    data_stream: stream2,
+                    start_x: sourceDFRenderer.topPoint().x,
+                    start_y: sourceDFRenderer.topPoint().y,
+                    end_x: transformerDownstreamPoint.x,
+                    end_y: transformerDownstreamPoint.y,
+                })
+            );
+            streamRenderers.push(
+                new DataStreamRenderer({
+                    data_stream: stream3,
+                    start_x: transformerUpstreamPoint.x,
+                    start_y: transformerUpstreamPoint.y,
+                    end_x: newDFRenderer.bottomPoint().x,
+                    end_y: newDFRenderer.bottomPoint().y,
+                })
+            );
+        }
+        else {
+            const stream2 = new DataStream(
+                stream1,
+                writeToDF,
+                1 / 2,
+            );
+            stream1.upstream = stream2;
+
+            streamRenderers.push(
+                new DataStreamRenderer({
+                    data_stream: stream2,
                     start_x: sourceDFRenderer.topPoint().x,
                     start_y: sourceDFRenderer.topPoint().y,
                     end_x: newDFRenderer.bottomPoint().x,
@@ -261,14 +323,14 @@ export class StreamSimulator {
             );
         }
     
-        layer.add(sourceDFRenderer.shape);
-        layer.add(newDFRenderer.shape);
+        baseLayer.add(sourceDFRenderer.shape);
+        baseLayer.add(newDFRenderer.shape);
 
         return new StreamSimulator({
             data_frame_renderers: [sourceDFRenderer, newDFRenderer],
             data_stream_renderers: streamRenderers,
             dataReaders: [reader],
-            layer,
+            layer: baseLayer,
         });
     }
 }
