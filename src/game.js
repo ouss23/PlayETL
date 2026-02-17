@@ -315,8 +315,6 @@ operationAddButton.addEventListener("click", event => {
             y: (window.innerHeight - 60) / 2,
             width: 150,
             height: 60,
-            //displayTexts: [opType == "filter" ? "🔍Filter" : "✏️​Update"],
-            //displayContents: [opColumn + " = " + opValue]
         });
     }
 
@@ -423,13 +421,28 @@ toSimulationButton.addEventListener("click", event => {
         const dags = SnappableShape.buildDAGs();
         if(dags.length == 0)
             console.log("No dag to render");
+        else {
+            //drawDAG(dags[0], simulationLayer);
+            const simulator = StreamSimulator.fromDAG(dags[0], simulationLayer);
+        }
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.shiftKey) {
+        console.log(event.key);
+        const simulator = StreamSimulator.instance;
+        if(simulator == null)
+            return;
+        if(simulator.animation.isRunning())
+            simulator.animation.stop();
         else
-            drawDAG(dags[0], simulationLayer);
+            simulator.animation.start();
     }
 });
 
 //test only
-var toEditButton = document.getElementById("simulation-restart");
+var toEditButton = document.getElementById("edit-view");
 toEditButton.addEventListener("click", event => {
     MenusManager.setMenu(Menu.Edit);
 });

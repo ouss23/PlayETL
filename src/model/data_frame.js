@@ -12,4 +12,12 @@ export class DataFrame {
     this.schema = schema;
     this.rows = rows_values.map(e => new Row(e, schema));
   }*/
+
+    copy() {
+      return new DataFrame(
+        this.name,
+        this.schema,
+        this.rows.map(r => r.copy())
+      );
+    }
 }

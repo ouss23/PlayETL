@@ -23,4 +23,12 @@ export class DataReader {
 
         return readRows;
     }
+
+    copy(deepSourceDFCopy = true) {
+        return new DataReader(
+            deepSourceDFCopy ? this.sourceDF.copy() : this.sourceDF,
+            this.upstream,
+            this.rowReadDelay
+        );
+    }
 }

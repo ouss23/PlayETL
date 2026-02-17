@@ -2,14 +2,15 @@ import { DataFrame } from "./model/data_frame.js";
 import { DataReader } from "./model/data_reader.js";
 import { DataStream } from "./model/data_stream.js";
 import { DataStreamTransformer } from "./model/data_stream_transformer.js";
+import { DataStreamRenderer } from "./view/data_stream_renderer.js";
 import { RowRenderer } from "./view/row_renderer.js";
+import { DataFrameRenderer } from "./view/data_frame_renderer.js";
 
 export class StreamSimulator {
     constructor({
         data_frame_renderers = [],
         data_stream_renderers = [],
         dataReaders = [],
-        //rowReadDelay = 1 / 2,
         layer,
     }) {
         this.data_frame_renderers = data_frame_renderers;
@@ -30,11 +31,7 @@ export class StreamSimulator {
         this.animationTime = 0;
         this.lastRowReadTime = 0;
         //console.log("dataReaders.length = " + dataReaders.length);
-        this.dataReaders = dataReaders;/*data_stream_renderers.map(
-            dsr => dsr.data_stream
-        ).filter(
-            ds => ds instanceof DataReader
-        );*/
+        this.dataReaders = dataReaders;
         this.layer = layer;
         StreamSimulator.instance = this;
         this.animation = new Konva.Animation(
@@ -175,5 +172,103 @@ export class StreamSimulator {
         this.rowRenderersMap.set(row, rowRenderer);
         this.layer.add(rowRenderer.shape);
         return rowRenderer;
+    }
+
+    static clearAll() {
+        if (this.instance == null)
+            return;
+
+        this.instance.animation.stop();
+        this.instance = null;
+    }
+
+    static fromDAG(dag, layer, verticalSpacing = 60) {
+        this.clearAll();
+
+        if(dag.operations.length == 0)
+            return null;
+        
+        const reader = dag.getDataReader().copy(true);
+        const sourceDF = reader.sourceDF;
+        let writeToDF = dag.getWriteToDF().copy();
+        let lastTransformer = dag.getLastTransformer();
+        if(lastTransformer != null)
+            lastTransformer = lastTransformer.copy();
+    
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        const columnsCount = 4;
+        const padding = 5;
+        const elementsOffset = 50;
+        const width = padding * 2 + columnsCount * elementsOffset;
+        const transformerBlockHeight = 60;
+        const lastTransformerHeight = (lastTransformer == null) ?
+            0 : (lastTransformer.dataFrameTransformers.length * transformerBlockHeight);
+    
+        const sourceDFRenderer = new DataFrameRenderer({
+            dataframe: sourceDF,
+            x: centerX - width / 2,
+            y: centerY + ((lastTransformer == null) ?
+                (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2)),
+            elements_offset: elementsOffset,
+            max_height: 2,
+            padding: padding,
+            columnsDisplayCount: columnsCount,
+        });
+    
+        const newDFRenderer = new DataFrameRenderer({
+            dataframe: writeToDF,
+            x: centerX - width / 2,
+            y: centerY - ((lastTransformer == null) ?
+                (verticalSpacing / 2) : (verticalSpacing + lastTransformerHeight / 2))
+                - (padding * 2 + elementsOffset),
+            elements_offset: elementsOffset,
+            max_height: 2,
+            padding: padding,
+            columnsDisplayCount: columnsCount,
+        });
+
+        const streamRenderers = [];
+    
+        if(lastTransformer != null) {
+            const transformerRenderer = new TransformerRenderer({
+                transformer: lastTransformer,
+                x: (window.innerWidth - 150) / 2,
+                y: (window.innerHeight - lastTransformerHeight) / 2,
+                width: 150,
+                height: 60,
+                snappable: false,
+            });
+    
+            layer.add(transformerRenderer.staticShape);
+        }
+        else {
+            const stream = new DataStream(
+                reader,
+                writeToDF,
+                1 / 2,
+            );
+            reader.upstream = stream;
+
+            streamRenderers.push(
+                new DataStreamRenderer({
+                    data_stream: stream,
+                    start_x: sourceDFRenderer.topPoint().x,
+                    start_y: sourceDFRenderer.topPoint().y,
+                    end_x: newDFRenderer.bottomPoint().x,
+                    end_y: newDFRenderer.bottomPoint().y,
+                })
+            );
+        }
+    
+        layer.add(sourceDFRenderer.shape);
+        layer.add(newDFRenderer.shape);
+
+        return new StreamSimulator({
+            data_frame_renderers: [sourceDFRenderer, newDFRenderer],
+            data_stream_renderers: streamRenderers,
+            dataReaders: [reader],
+            layer,
+        });
     }
 }

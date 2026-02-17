@@ -20,4 +20,12 @@ export class DataStreamTransformer {
                 arrival_time: inputRow.arrival_time
             }
     }
+
+    copy() {
+        return new DataStreamTransformer(
+            this.downstream,
+            this.upstream,
+            this.dataFrameTransformers
+        );
+    }
 }
