@@ -319,8 +319,9 @@ validateButton.addEventListener("click", event => {
     document.getElementById('status-div').innerHTML = 'Job status : ' +
         (jobValidation.status == "success" ? "🟢" : "🔴​");
     if(jobValidation.status != "success") {
-        console.log("Job validation failed : " + jobValidation.reason);
         dags = [];
+        document.getElementById('dags-count').innerHTML = 'DAGs count : -';
+        console.log("Job validation failed : " + jobValidation.reason);
     }
     else {
         dags = SnappableShape.buildDAGs();
