@@ -1,5 +1,7 @@
 # Play ETL
-![Demo](./assets/gifs/demo.gif)
+
+<img src="./assets/gifs/demo.gif" alt="Demo" width="250">
+
 **Play ETL** is an interactive simulation game where you play as a Data Engineer. Your mission is to build efficient **Data Pipelines** and **ETL** processes to produce a given Dataframe, all by avoiding performance bottlenecks and execution failures.
 
 Master **Data Pipelines** and **ETLs** (Extract-Transform-Load) by playing :
@@ -38,13 +40,18 @@ You can delete any operation by double-clicking on its block.
 
 ### Validate ETL DAGs
 Once you finish building a DAG, you need to validate it using the **Validate job** button in the top-right panel of the **DAG Edit View**.
-![Add operation](./assets/gifs/validate_job.gif)
+
+<img src="./assets/gifs/validate_job.gif" alt="Add operation" width="250">
+
 A DAG is valid if there is no block that's left unconnected. The validation state is indicated with a green dot 🟢 in the top-right panel when the DAG structure is correct. A DAG must be valid before you can execute its simulation.
 
 ### Simulate ETL DAGs Execution
 Once your DAG is ready, you can go to the **Simulation View** to see it in action! You can access the **Simulation View** by clicking on the **>>Simulation View** button in the top-right panel of the **DAG Edit View**.
+
 ![Add operation](./assets/images/to_simulation.png)
+
 Once there, you can control the simulation using the **Play**, **Pause** and **Restart** buttons.
+
 ![Add operation](./assets/images/simulation_buttons.png)
 
 A Dataframe is represented with a set of visual shapes. Each shape represents a single row that has 3 columns (shape, color, label) as explained above. In other words, a green "star" shape that has a "C" label is the visualisation of the row (shape="star", color="green", label="A").
