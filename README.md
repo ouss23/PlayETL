@@ -6,7 +6,7 @@
 
 Master **Data Pipelines** and **ETLs** (Extract-Transform-Load) by playing :
 
-[![Static Badge](https://img.shields.io/badge/Play%20now-Play%20ETL-orange?style=for-the-badge)](ouss23.github.io/PlayETL/)
+[![Static Badge](https://img.shields.io/badge/Play%20now-Play%20ETL-orange?style=for-the-badge)](https://ouss23.github.io/PlayETL/)
 
 ## How to Play
 ### Data Structure
