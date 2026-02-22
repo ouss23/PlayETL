@@ -63,13 +63,14 @@ A Dataframe is represented with a set of visual shapes. Each shape represents a 
 This is still a very minimal version. The following features are being built and will be added soon :
 - [ ] Add multiple game levels
 - [ ] Add distributed computing with multiple nodes
-- [ ] Add Narrow Transformations (Joins, Distinct, ...)
+- [ ] Add Wide Transformations (Joins, Distinct, ...)
 - [ ] Add Data Partitionning & Shuffling
 - [ ] Add Sound Effects
 - [ ] Add complex column operations (AND, OR, ...) in transformations
 - [ ] Allow Read/Write operations on custom Dataframes
 - [ ] Add OutOfMemory failures and Data Spills
 - [ ] Add multiple DAGs and Stages simulation support
+- [ ] Add Mobile support
 
 ## Built With
 

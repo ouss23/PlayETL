@@ -6,6 +6,18 @@ import { DataStreamRenderer } from "./view/data_stream_renderer.js";
 import { RowRenderer } from "./view/row_renderer.js";
 import { DataFrameRenderer } from "./view/data_frame_renderer.js";
 import { TransformerRenderer } from "./view/transformer_renderer.js";
+import { DataFrameContentTask } from "./model/level/data_frame_content_task.js";
+
+export class SimulationState {
+    static IDLE = new SimulationState(0);
+    static IN_PROGRESS = new SimulationState(1);
+    //static PAUSED = new SimulationState(2);
+    static ENDED = new SimulationState(3);
+
+    constructor(id) {
+        this.id = id;
+    }
+}
 
 export class StreamSimulator {
     constructor({
@@ -13,6 +25,7 @@ export class StreamSimulator {
         data_stream_renderers = [],
         dataReaders = [],
         layer,
+        dag = null,
     }) {
         this.data_frame_renderers = data_frame_renderers;
         this.dataFrameRenderersMap = new Map(
@@ -29,6 +42,7 @@ export class StreamSimulator {
             );
         }
         //console.log(this.rowRenderersMap);
+        this.state = SimulationState.IDLE;
         this.animationTime = 0;
         this.lastRowReadTime = 0;
         //console.log("dataReaders.length = " + dataReaders.length);
@@ -40,6 +54,7 @@ export class StreamSimulator {
             StreamSimulator.updateAll,
             layer
         );
+        this.dag = dag;
     }
 
     static instance = null;
@@ -163,6 +178,8 @@ export class StreamSimulator {
         for(let i = 0; i < this.data_frame_renderers.length; i++) {
             this.data_frame_renderers[i].updateRows(timeDiff);
         }
+
+        this.updateState();
     }
 
     createRowRenderer(row, x, y) {
@@ -173,6 +190,84 @@ export class StreamSimulator {
         this.rowRenderersMap.set(row, rowRenderer);
         this.layer.add(rowRenderer.shape);
         return rowRenderer;
+    }
+
+    updateState() {
+        if((StreamSimulator.instance == null) || (this.animation == null))
+        {
+            this.state = SimulationState.IDLE;
+            return;
+        }
+
+        if(this.animationTime <= 0)
+        {
+            this.state = SimulationState.IDLE;
+            return;
+        }
+
+        let ended = true;
+        for(let i = 0; i < this.dataReaders.length; i++) {
+            if(this.dataReaders[i].sourceDF.rows.length > 0) {
+                ended = false;
+                break;
+            }
+            let upstream = this.dataReaders[i].upstream;
+            while((upstream != null) && (upstream instanceof DataStream)) {
+                if(upstream.rows.length > 0) {
+                    ended = false;
+                    break;
+                }
+
+                let next = upstream.upstream;
+                if(next != null) {
+                    while(next instanceof DataStreamTransformer) {
+                        //TODO : check buffer size
+                        next = next.upstream;
+                    }
+                }
+
+                upstream = next;
+            }
+        }
+
+        if(ended && (this.state != SimulationState.ENDED))
+        {
+            this.state = SimulationState.ENDED
+            this.onSimulationEnded();
+        }
+        else
+            this.state = ended ? SimulationState.ENDED : SimulationState.IN_PROGRESS;
+    }
+
+    static refreshLevelTasksUI() {
+        if(this.instance == null) {
+            document.getElementById("level-tasks-title").innerHTML = "Level tasks (-/-)";
+            document.getElementById("level-tasks-content").innerHTML = "";
+            return;
+        }
+
+        const levelTask = new DataFrameContentTask(
+            rows => rows.filter(r => r.getCellValue("shape") == "star")
+                .map(r => r.setCellValue("color", "orange")),
+                "Keep Stars only and turn their color to Orange"
+        );
+        const validation = levelTask.checkValidation(
+            this.instance.state == SimulationState.ENDED,
+            this.instance.dag.getDataReader().sourceDF,
+            Array.from(this.instance.dataFrameRenderersMap.keys())
+                .find(df => df.name == this.instance.dag.getWriteToDF().name),
+            this.instance.dag,
+        );
+
+        document.getElementById("level-tasks-title").innerHTML = "Level tasks (" +
+            (validation ? "1" : "0") + "/1)";
+        document.getElementById("level-tasks-content").innerHTML =
+            (validation ? "🟢" : "⚪") + " " + levelTask.description;
+    }
+
+    onSimulationEnded() {
+        StreamSimulator.refreshLevelTasksUI();
+        //console.log("Simulation ended : " + validation);
     }
 
     static clearAll() {
@@ -331,6 +426,7 @@ export class StreamSimulator {
             data_stream_renderers: streamRenderers,
             dataReaders: [reader],
             layer: baseLayer,
+            dag: dag,
         });
     }
 }

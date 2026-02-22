@@ -87,3 +87,21 @@
 #simulation-control-panel > * {
     margin-top: 5px;
 }
+
+#level-tasks-panel {
+    position: absolute;
+    /*inset: 0;*/
+    pointer-events: auto;
+    background-color: #EBEBEB;
+    width: 250px;
+    height: 150px;
+    padding: 10px;
+    /*margin: 10px;*/
+    top: 0px;
+    right: 0px;
+}
+
+#level-tasks-panel > * {
+    /*margin: 10px;*/
+    margin-top: 5px;
+}
