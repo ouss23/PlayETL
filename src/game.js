@@ -12,6 +12,9 @@ import { SnappableShape } from "./view/snappable_shape.js";
 import { ShapeColor } from "./view/shapes/shape_colors.js";
 import { DataIORenderer, IOOperationType } from "./view/data_io_renderer.js";
 import { Menu, MenusManager } from "./view/menus_manager.js";
+import { GameLevel } from "./model/level/game_level.js";
+import { DataFrameContentTask } from "./model/level/data_frame_content_task.js";
+import { LevelTask } from "./model/level/level_task.js";
 
 var operationTypeSelect = document.getElementById("op-type");
 operationTypeSelect.options.length = 0;
@@ -158,7 +161,7 @@ validateButton.addEventListener("click", event => {
         dags = SnappableShape.buildDAGs();
         document.getElementById('dags-count').innerHTML = 'DAGs count : ' +
             dags.length;
-        console.log(dags);
+        //console.log(dags);
     }
 });
 
@@ -178,6 +181,24 @@ simulationBaseLayer.draw();
 simulationTransformersLayer.draw();
 
 MenusManager.init(editStage, simulationStage);
+
+const level = new GameLevel(
+    sourceDF,
+    "level desc",
+    [
+        new DataFrameContentTask(
+            rows => rows.filter(r => r.getCellValue("shape") == "star")
+                .map(r => r.setCellValue("color", "orange")),
+            "Keep Stars only and turn their color to Orange"
+        ),
+        new LevelTask(
+            (se, sdf, ndf, operationsDAG) => (operationsDAG != null) &&
+                (operationsDAG.getLastTransformer() != null) &&
+                (operationsDAG.getLastTransformer().dataFrameTransformers.length <= (4 - 2)),
+            "DAG size <= 4",
+        ),
+    ],
+);
 
 function refreshSimulationPlaybackButtons() {
     document.getElementById("simulation-play").disabled =
@@ -211,11 +232,14 @@ toSimulationButton.addEventListener("click", event => {
                 dags[0],
                 simulationBaseLayer,
                 simulationTransformersLayer,
+                s => {
+                    StreamSimulator.refreshLevelTasksUI(level);
+                }
             );
         }
     }
     refreshSimulationPlaybackButtons();
-    StreamSimulator.refreshLevelTasksUI();
+    StreamSimulator.refreshLevelTasksUI(level);
 });
 
 document.getElementById("simulation-play").addEventListener("click", event => {
@@ -248,8 +272,11 @@ document.getElementById("simulation-restart").addEventListener("click", event =>
             dags[0],
             simulationBaseLayer,
             simulationTransformersLayer,
+            s => {
+                StreamSimulator.refreshLevelTasksUI(level);
+            }
         );
-        StreamSimulator.refreshLevelTasksUI();
+        StreamSimulator.refreshLevelTasksUI(level);
     }
 
     refreshSimulationPlaybackButtons();

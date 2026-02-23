@@ -26,6 +26,7 @@ export class StreamSimulator {
         dataReaders = [],
         layer,
         dag = null,
+        endCallback = null,
     }) {
         this.data_frame_renderers = data_frame_renderers;
         this.dataFrameRenderersMap = new Map(
@@ -55,6 +56,7 @@ export class StreamSimulator {
             layer
         );
         this.dag = dag;
+        this.endCallback = endCallback;
     }
 
     static instance = null;
@@ -239,34 +241,38 @@ export class StreamSimulator {
             this.state = ended ? SimulationState.ENDED : SimulationState.IN_PROGRESS;
     }
 
-    static refreshLevelTasksUI() {
+    static refreshLevelTasksUI(gameLevel) {
         if(this.instance == null) {
             document.getElementById("level-tasks-title").innerHTML = "Level tasks (-/-)";
             document.getElementById("level-tasks-content").innerHTML = "";
             return;
         }
 
-        const levelTask = new DataFrameContentTask(
-            rows => rows.filter(r => r.getCellValue("shape") == "star")
-                .map(r => r.setCellValue("color", "orange")),
-                "Keep Stars only and turn their color to Orange"
-        );
-        const validation = levelTask.checkValidation(
-            this.instance.state == SimulationState.ENDED,
-            this.instance.dag.getDataReader().sourceDF,
-            Array.from(this.instance.dataFrameRenderersMap.keys())
-                .find(df => df.name == this.instance.dag.getWriteToDF().name),
-            this.instance.dag,
-        );
+        const newDF = Array.from(this.instance.dataFrameRenderersMap.keys())
+            .find(df => df.name == this.instance.dag.getWriteToDF().name);
+        const tasksProgress = gameLevel.getTasksProgress(this.instance, newDF);
 
         document.getElementById("level-tasks-title").innerHTML = "Level tasks (" +
-            (validation ? "1" : "0") + "/1)";
-        document.getElementById("level-tasks-content").innerHTML =
-            (validation ? "🟢" : "⚪") + " " + levelTask.description;
+            tasksProgress.finishedCount + "/" + tasksProgress.totalCount + ")";
+        if(tasksProgress.totalCount == 0)
+            document.getElementById("level-tasks-content").innerHTML = "";
+        else {
+            document.getElementById("level-tasks-content").innerHTML =
+                (tasksProgress.finished.includes(gameLevel.levelTasks[0]) ? "🟢" : "⚪") +
+                " " + gameLevel.levelTasks[0].description;
+            
+            for(let i = 1; i < gameLevel.levelTasks.length; i++) {
+                document.getElementById("level-tasks-content").innerHTML += "<br>" +
+                    (tasksProgress.finished.includes(gameLevel.levelTasks[i]) ? "🟢" : "⚪") +
+                    " " + gameLevel.levelTasks[i].description;
+            }
+        }
     }
 
     onSimulationEnded() {
-        StreamSimulator.refreshLevelTasksUI();
+        if(this.endCallback != null)
+            this.endCallback(this);
+        //StreamSimulator.refreshLevelTasksUI();
         //console.log("Simulation ended : " + validation);
     }
 
@@ -278,7 +284,13 @@ export class StreamSimulator {
         this.instance = null;
     }
 
-    static fromDAG(dag, baseLayer, transformersLayer, verticalSpacing = 60) {
+    static fromDAG(
+        dag,
+        baseLayer,
+        transformersLayer,
+        endCallback = null,
+        verticalSpacing = 60,
+    ) {
         this.clearAll();
 
         if(dag.operations.length == 0)
@@ -427,6 +439,7 @@ export class StreamSimulator {
             dataReaders: [reader],
             layer: baseLayer,
             dag: dag,
+            endCallback: endCallback,
         });
     }
 }

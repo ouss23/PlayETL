@@ -27,8 +27,4 @@ export class DataFrameContentTask extends LevelTask {
         super(validator, description);
         this.rowsTransformer = rowsTransformer;
     }
-
-    checkValidation(simulationEnded, sourceDF, newDF, operationsDAG) {
-        return this.validator(simulationEnded, sourceDF, newDF, operationsDAG);
-    }
 }
