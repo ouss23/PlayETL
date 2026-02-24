@@ -15,10 +15,14 @@ export class MenusManager {
     static editStage = null;
     static simulationStage = null;
 
-    static init(mainStage, editStage, simulationStage) {
+    static currentLevelId = -1;
+    static currentLevel = null;
+
+    static init(mainStage, editStage, simulationStage, levels) {
         this.mainStage = mainStage;
         this.editStage = editStage;
         this.simulationStage = simulationStage;
+        this.levels = levels;
         this.refreshViews();
     }
 
@@ -47,8 +51,23 @@ export class MenusManager {
             this.currentMenu != Menu.Simulation;
     }
 
-    static refreshLevelUI(levelNum, level) {
-        document.getElementById("level-title").innerHTML = "Level " + levelNum;
-        document.getElementById("level-description").innerHTML = level.description;
+    static startLevel(levelId) {
+        this.currentLevelId = levelId;
+        this.currentLevel = this.levels[levelId];
+
+        this.setMenu(Menu.Edit);
+        this.refreshLevelUI();
+    }
+
+    static cancelLevel() {
+        this.currentLevelId = -1;
+        this.currentLevel = null;
+    }
+
+    static refreshLevelUI() {
+        document.getElementById("level-title").innerHTML = "Level " +
+            (this.currentLevelId + 1);
+        document.getElementById("level-description").innerHTML =
+            this.currentLevel.description;
     }
 }

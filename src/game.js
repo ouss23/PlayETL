@@ -16,6 +16,94 @@ import { GameLevel } from "./model/level/game_level.js";
 import { DataFrameContentTask } from "./model/level/data_frame_content_task.js";
 import { LevelTask } from "./model/level/level_task.js";
 
+const levels = [
+    new GameLevel(
+        DataFrame.generateShapes(
+            "source_df",
+            [
+                ["star", "purple", "A"],
+                ["star", "green", "B"],
+                ["star", "purple", "C"],
+                ["star", "green", "D"],
+            ]
+        ),
+        "Write all Green Stars from 'source_df' into 'new_df'",
+        [
+            new DataFrameContentTask(
+                rows => rows.filter(
+                    r => r.getCellValue("shape") == "star" &&
+                        r.getCellValue("color") == "green"
+                ),
+                "Keep Green Stars only"
+            ),
+        ],
+    ),
+    new GameLevel(
+        DataFrame.generateShapes(
+            "source_df",
+            [
+                ["star", "purple", "A"],
+                ["star", "green", "B"],
+                ["diamond", "purple", "C"],
+                ["diamond", "green", "D"],
+            ]
+        ),
+        "Write all Green Stars from 'source_df' into 'new_df'",
+        [
+            new DataFrameContentTask(
+                rows => rows.filter(
+                    r => r.getCellValue("shape") == "star" &&
+                        r.getCellValue("color") == "green"
+                ),
+                "Keep Green Stars only"
+            ),
+        ],
+    ),
+    new GameLevel(
+        DataFrame.generateShapes(
+            "source_df",
+            [
+                ["star", "purple", "A"],
+                ["star", "green", "B"],
+                ["star", "orange", "C"],
+                ["diamond", "purple", "D"],
+                ["diamond", "green", "E"],
+                ["diamond", "orange", "F"],
+            ]
+        ),
+        "Change the color of all 'source_df' Shapes to Orange, and write them into 'new_df'",
+        [
+            new DataFrameContentTask(
+                rows => rows.map(r => r.setCellValue("color", "orange")),
+                "Change Shape colors to Orange"
+            ),
+        ],
+    ),
+];
+
+document.getElementById("levels-grid").innerHTML = "";
+levels.forEach(
+    (level, i) => {
+        const button = document.createElement("button");
+        button.innerText = i + 1;
+        button.addEventListener("click", event => {
+            MenusManager.startLevel(i);
+        });
+
+        document.getElementById("levels-grid").appendChild(button);
+    }
+);
+
+document.getElementById("main-view").addEventListener("click", event => {
+    SnappableShape.destroyAll();
+    editLayer.destroyChildren();
+    editLayer.clearCache();
+    editStage.clearCache();
+    editGridLayer.draw();
+    editLayer.draw();
+    MenusManager.setMenu(Menu.Main);
+});
+
 const mainStage = new Konva.Stage({
     container: 'konva-main-container',
     width: window.innerWidth,
@@ -80,25 +168,6 @@ RowRenderer.shapeSchema.columns.forEach((v, i) => {
     operationColumnSelect.options[i] = new Option(v.name, v.name);
 });
 
-const dataframe = new DataFrame(
-    "source_df",
-    RowRenderer.shapeSchema,
-    [
-        new Row(["star", "purple", "A"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "B"], RowRenderer.shapeSchema),
-        new Row(["star", "green", "C"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "D"], RowRenderer.shapeSchema),
-        new Row(["diamond", "green", "E"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "F"], RowRenderer.shapeSchema),
-        new Row(["star", "green", "G"], RowRenderer.shapeSchema),
-        new Row(["diamond", "purple", "H"], RowRenderer.shapeSchema),
-        new Row(["diamond", "green", "I"], RowRenderer.shapeSchema),
-    ]
-);
-
-const sourceDF = dataframe;
-const newDF = new DataFrame("new_df", RowRenderer.shapeSchema);
-
 const editStage = new Konva.Stage({
     container: 'konva-edit-container',
     width: window.innerWidth,
@@ -124,7 +193,9 @@ operationAddButton.addEventListener("click", event => {
     let newRenderer = null;
     if((opType == "read") || (opType == "write")) {
         newRenderer = new DataIORenderer({
-            dataFrame: opType == "read" ? sourceDF : newDF,
+            dataFrame: opType == "read" ?
+                MenusManager.currentLevel.sourceDF :
+                new DataFrame("new_df", RowRenderer.shapeSchema),
             operationType: opType == "read" ?
                 IOOperationType.READ : IOOperationType.WRITE,
             x: (window.innerWidth - 150) / 2,
@@ -192,7 +263,7 @@ simulationGridLayer.draw();
 simulationBaseLayer.draw();
 simulationTransformersLayer.draw();
 
-const level = new GameLevel(
+/*const level = new GameLevel(
     sourceDF,
     "Keep Stars only and turn their color to Orange, using 4 operations or less",
     [
@@ -208,10 +279,10 @@ const level = new GameLevel(
             "DAG size <= 4",
         ),
     ],
-);
+);*/
 
-MenusManager.init(mainStage, editStage, simulationStage);
-MenusManager.refreshLevelUI(1, level);
+MenusManager.init(mainStage, editStage, simulationStage, levels);
+//MenusManager.refreshLevelUI(1, level);
 
 function refreshSimulationPlaybackButtons() {
     document.getElementById("simulation-play").disabled =
@@ -228,6 +299,7 @@ function refreshSimulationPlaybackButtons() {
 var toSimulationButton = document.getElementById("simulation-view");
 toSimulationButton.addEventListener("click", event => {
     MenusManager.setMenu(Menu.Simulation);
+    const level = MenusManager.currentLevel;
     simulationBaseLayer.destroyChildren();
     simulationTransformersLayer.destroyChildren();
     const jobValidation = SnappableShape.buildConnections();
@@ -279,6 +351,7 @@ document.getElementById("simulation-restart").addEventListener("click", event =>
     if(dags.length == 0)
         console.log("No dag to render");
     else {
+        const level = MenusManager.currentLevel;
         simulationBaseLayer.destroyChildren();
         simulationTransformersLayer.destroyChildren();
         const simulator = StreamSimulator.fromDAG(

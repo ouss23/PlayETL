@@ -137,6 +137,11 @@ export class SnappableShape {
         target.shape.destroy();
     }
 
+    static destroyAll() {
+        //this.instances.forEach(inst => inst.shape.destroy());
+        this.instances = [];
+    }
+
     static buildConnections() {
         this.instances.forEach(instance => {
             instance.topConnections = instance.topSnapPoints.map(_ => null);

@@ -1,5 +1,6 @@
 import { Schema } from "./schema.js";
 import { Row } from "./row.js";
+import { RowRenderer } from "../view/row_renderer.js";
 
 export class DataFrame {
   constructor(name, schema, rows = []) {
@@ -8,16 +9,19 @@ export class DataFrame {
     this.rows = rows;
   }
 
-  /*constructor(schema, rows_values) {
-    this.schema = schema;
-    this.rows = rows_values.map(e => new Row(e, schema));
-  }*/
+  copy() {
+    return new DataFrame(
+      this.name,
+      this.schema,
+      this.rows.map(r => r.copy())
+    );
+  }
 
-    copy() {
-      return new DataFrame(
-        this.name,
-        this.schema,
-        this.rows.map(r => r.copy())
-      );
-    }
+  static generateShapes(name, entries) {
+    return new DataFrame(
+      name,
+      RowRenderer.shapeSchema,
+      entries.map(e => new Row(e, RowRenderer.shapeSchema)),
+    );
+  }
 }
