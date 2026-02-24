@@ -9,6 +9,33 @@
     inset: 0;
 }
 
+#main-panel {
+    position: absolute;
+    background-color: #EBEBEB;
+    width: 200px;
+    /*height: 200px;*/
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    text-align: center;
+}
+
+#levels-grid {
+    /*position: absolute;*/
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 60px);
+    gap: 8px;
+    justify-content: start;
+    /*background-color: #EBEBEB;
+    width: 200px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;*/
+    margin-top: 5px;
+}
+
 #operations-control-panel {
     position: absolute;
     /*inset: 0;*/
@@ -29,6 +56,23 @@
 
 #operations-control-panel button {
     pointer-events: auto;
+}
+
+#edit-level-description {
+    position: absolute;
+    pointer-events: none;
+    width: 300px;
+    height: 30px;
+    padding: 10px;
+    top: 0px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    text-align: center;
+}
+
+#edit-level-description > * {
+    /*margin: 10px;*/
+    margin-top: 5px;
 }
 
 #status-panel {

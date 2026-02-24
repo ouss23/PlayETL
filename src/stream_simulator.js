@@ -243,8 +243,19 @@ export class StreamSimulator {
 
     static refreshLevelTasksUI(gameLevel) {
         if(this.instance == null) {
-            document.getElementById("level-tasks-title").innerHTML = "Level tasks (-/-)";
-            document.getElementById("level-tasks-content").innerHTML = "";
+            document.getElementById("level-tasks-title").innerHTML = "Level tasks (" +
+                "0/" + gameLevel.levelTasks.length + ")";
+            if(gameLevel.levelTasks.length == 0)
+                document.getElementById("level-tasks-content").innerHTML = "";
+            else {
+                document.getElementById("level-tasks-content").innerHTML = "⚪ " +
+                    gameLevel.levelTasks[0].description;
+                
+                for(let i = 1; i < gameLevel.levelTasks.length; i++) {
+                    document.getElementById("level-tasks-content").innerHTML += "<br>" +
+                        "⚪ " + gameLevel.levelTasks[i].description;
+                }
+            }
             return;
         }
 

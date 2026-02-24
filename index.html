@@ -14,10 +14,25 @@
 <body>
 
     <div id="container">
+        <div id="konva-main-container"></div>
         <div id="konva-edit-container"></div>
         <div id="konva-simulation-container"></div>
 
-        <div id="edit-menu" class="view">
+        <div id="main-menu" class="view">
+            <div id="main-panel">
+                Choose a level
+                <div id="levels-grid">
+                    <button>1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>4</button>
+                    <button>5</button>
+                </div>
+            </div>
+            
+        </div>
+
+        <div id="edit-menu" class="view hidden">
             <div id="operations-control-panel">
                 <div class="panel">Add operation</div>
                 <select id="op-type">
@@ -42,7 +57,10 @@
 
                 <button id="op-add">Add</button>
             </div>
-
+            <div id="edit-level-description">
+                <h1 id="level-title">Level 1</h1>
+                <p id="level-description">Description</p>
+            </div>
             <div id="status-panel">
                 <button id="status-validate">Validate job</button>
                 <div class="panel" id="status-div">Job status : ⚪​</div>

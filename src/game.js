@@ -16,6 +16,18 @@ import { GameLevel } from "./model/level/game_level.js";
 import { DataFrameContentTask } from "./model/level/data_frame_content_task.js";
 import { LevelTask } from "./model/level/level_task.js";
 
+const mainStage = new Konva.Stage({
+    container: 'konva-main-container',
+    width: window.innerWidth,
+    height: window.innerHeight,
+});
+const mainGridLayer = createGridLayer({width:1500, height:1500, cellSize:40});
+const mainLayer = new Konva.Layer();
+mainStage.add(mainGridLayer);
+mainStage.add(mainLayer);
+mainGridLayer.draw();
+mainLayer.draw();
+
 var operationTypeSelect = document.getElementById("op-type");
 operationTypeSelect.options.length = 0;
 [
@@ -180,11 +192,9 @@ simulationGridLayer.draw();
 simulationBaseLayer.draw();
 simulationTransformersLayer.draw();
 
-MenusManager.init(editStage, simulationStage);
-
 const level = new GameLevel(
     sourceDF,
-    "level desc",
+    "Keep Stars only and turn their color to Orange, using 4 operations or less",
     [
         new DataFrameContentTask(
             rows => rows.filter(r => r.getCellValue("shape") == "star")
@@ -199,6 +209,9 @@ const level = new GameLevel(
         ),
     ],
 );
+
+MenusManager.init(mainStage, editStage, simulationStage);
+MenusManager.refreshLevelUI(1, level);
 
 function refreshSimulationPlaybackButtons() {
     document.getElementById("simulation-play").disabled =

@@ -1,6 +1,7 @@
 export class Menu {
-    static Edit = new Menu(0);
-    static Simulation = new Menu(1);
+    static Main = new Menu(0)
+    static Edit = new Menu(1);
+    static Simulation = new Menu(2);
 
     constructor(id) {
         this.id = id;
@@ -8,12 +9,14 @@ export class Menu {
 }
 
 export class MenusManager {
-    static currentMenu = Menu.Edit;
+    static currentMenu = Menu.Main;
 
+    static mainStage = null;
     static editStage = null;
     static simulationStage = null;
 
-    static init(editStage, simulationStage) {
+    static init(mainStage, editStage, simulationStage) {
+        this.mainStage = mainStage;
         this.editStage = editStage;
         this.simulationStage = simulationStage;
         this.refreshViews();
@@ -29,14 +32,23 @@ export class MenusManager {
     }
 
     static refreshViews() {
+        document.getElementById("main-menu").hidden = 
+            this.currentMenu != Menu.Main;
         document.getElementById("edit-menu").hidden = 
             this.currentMenu != Menu.Edit;
         document.getElementById("simulation-menu").hidden = 
             this.currentMenu != Menu.Simulation;
 
+        document.getElementById("konva-main-container").hidden = 
+            this.currentMenu != Menu.Main;
         document.getElementById("konva-edit-container").hidden = 
             this.currentMenu != Menu.Edit;
         document.getElementById("konva-simulation-container").hidden = 
             this.currentMenu != Menu.Simulation;
+    }
+
+    static refreshLevelUI(levelNum, level) {
+        document.getElementById("level-title").innerHTML = "Level " + levelNum;
+        document.getElementById("level-description").innerHTML = level.description;
     }
 }
